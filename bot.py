@@ -1,11 +1,14 @@
-from discord        import Client, Game, Embed, Colour, Object
+from discord        import Client, Game, Embed, Colour, Object, utils
 from collections    import OrderedDict
 from datetime       import datetime
 from random         import choice, randint
+from hashlib        import sha256
 from os             import getenv
 import requests
+import psycopg2
 import asyncio
 import json
+import sys
 import re
 
 
@@ -28,6 +31,25 @@ RULES_CHANNEL_ID  = "275053802615209986"
 REDDIT_CHANNEL_ID = "362107240963899395"
 SUBREDDIT_URL = "skywanderers"
 SUBREDDIT_REFRESH = 30 # Seconds
+DATABASE = {
+    "dbname": "d9um5ikkkmm463",
+    "user": "fukkkitgsohzeo",
+    "password": getenv('DB_PWD'),
+    "host": "ec2-184-73-199-72.compute-1.amazonaws.com",
+    "port": 5432
+}
+ROLES = {
+    11:"Supporter",
+    12:"Pioneer",
+    13:"Explorer",
+    14:"Entrepreneur",
+    15:"Pirate",
+    16:"Corporate Mogul",
+    17:"Adventurer",
+    18:"Pirate Lord",
+    19:"Legendary Pirate Lord",
+    20:"Legendary Pirate King",
+}
 
 
 # class RedditEmbed(Embed):
@@ -42,6 +64,24 @@ SUBREDDIT_REFRESH = 30 # Seconds
 #     )
 
 
+class OpenCursor(object):
+    def __init__(self, db):
+        self.db = db
+    def __enter__(self):
+        self.cursor = self.db.cursor()
+        return self.cursor
+    def __exit__(self, type, value, traceback):
+        self.cursor.close()
+
+
+def make_dict(coll):
+    """Makes a dict from a collection of sub-collection. Each first items of the collection is a key."""
+    result = {}
+    for subcoll in coll:
+        result[subcoll[0]] = tuple(subcoll[1:])
+    return result
+
+
 def get_new_posts(subreddit_url, posts_nb=5):
     """Returns a dict of the last <posts_nb> new posts in the <subreddit_url> subreddit."""
     url = "http://www.reddit.com/r/%s/new.json?sort=new&limit=%s" % (subreddit_url, posts_nb)
@@ -50,12 +90,12 @@ def get_new_posts(subreddit_url, posts_nb=5):
         data = requests.get(url).json()['data']['children']
     except (KeyboardInterrupt, SystemExit):
         raise
-    except Exception as e:
-        print("Failed to get new posts.")
+    except:
+        print(sys.exc_info())
     return data
 
 
-async def check_subreddit(delay=60):
+async def check_subreddit(delay=60): # TODO: All stuff in one loop (no for init)
     await client.wait_until_ready()
     for i in range(5): # 5 Tries
         new_posts = get_new_posts(SUBREDDIT_URL, 1)
@@ -91,6 +131,7 @@ client = Client()
 log_channel     = Object(id=LOG_CHANNEL_ID)
 main_channel    = Object(id=MAIN_CHANNEL_ID)
 reddit_channel  = Object(id=REDDIT_CHANNEL_ID)
+db = psycopg2.connect(**DATABASE)
 
 
 @client.event
@@ -124,7 +165,38 @@ async def on_message(msg):
 
     elif msg.content.startswith('!redeem'):
         if re.match(r'^!redeem (\S+)$', msg.content):
-            pass # TODO: VALIDATES ACCOUNT
+            key = re.search(r'^!redeem (\S+)$', msg.content).group(1)
+            key = key.encode('utf-8')
+            key = sha256(key).hexdigest()
+
+            with OpenCursor(db) as cur:
+                cur.execute("SELECT code, active_disc, rank FROM register_activationcode")
+                db_keys = make_dict(cur.fetchall())
+                try:
+                    db_key = db_keys[key]
+                    if db_key[0]:
+                        usr_id = msg.author.id
+                        usr_name = msg.author.name
+                        cur.execute("SELECT * FROM register_discordmember WHERE user_id = %s", (usr_id,))
+                        db_usr = cur.fetchone()
+                        if db_usr is None:
+                            rank_id = db_key[1]
+                            try:
+                                role = utils.get(msg.server.roles, name=ROLES[rank_id])
+                                await client.add_roles(msg.author, role)
+                                cur.execute("INSERT INTO register_discordmember (username, user_id, user_rank) VALUES (%s, %s, %s)", (usr_name, usr_id, rank_id))
+                                cur.execute("UPDATE register_activationcode SET active_disc = FALSE WHERE code = %s", (key,))
+                                db.commit()
+                                await client.send_message(main_channel, "%s is now %s! Thanks for supporting us!" % (msg.author.mention, role.mention))
+                            except:
+                                print(sys.exc_info())
+                                await client.send_message(msg.author, "Error: Something weird occured. Please contact a moderator.")
+                        else:
+                            await client.send_message(msg.author, "Error: This user already used an activation code.")
+                    else:
+                        await client.send_message(msg.author, "Error: This code has already been used on discord.")
+                except KeyError:
+                    await client.send_message(msg.author, "Error: This code seems invalid.")
         else:
             await client.send_message(msg.author, "Bad syntax: `!redeem my_activation_code` should work.")
 
@@ -136,7 +208,7 @@ async def on_message(msg):
         )
         embed.set_image(url="https://cdn.discordapp.com/attachments/279940382656167936/361678736422076418/comp.png")
         embed.add_field(name="Commands handbook", value="!info\n!kick @member\n!redeem activationKey")
-        embed.add_field(name="Subsystems status", value="[UP] Reddit tracking\n[UP] Chat logging\n[UP] Welcome and goodbye\n[UP] Cool easter eggs")
+        embed.add_field(name="Subsystems status", value="[ON] Reddit tracking\n[ON] Chat logging\n[ON] Welcome and goodbye\n[ON] Cool easter eggs")
         embed.set_footer(text="Main guidance computer crafted by LeMinaw corp. ltd", icon_url="https://cdn.discordapp.com/avatars/201484914686689280/b6a28b98e51f482052e42009fed8c6c4.png?size=256")
         await client.send_message(msg.channel, embed=embed)
 
@@ -256,3 +328,4 @@ async def on_ready():
 
 client.loop.create_task(check_subreddit(SUBREDDIT_REFRESH))
 client.run(DISCORD_TOKEN)
+db.close()
