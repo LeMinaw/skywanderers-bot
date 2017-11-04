@@ -25,12 +25,13 @@ WATCH_CHANNELS_IDS = [
     "317360477292331011",
     "291336725589000204"
 ]
-LOG_CHANNEL_ID    = "361282322303156224"
-MAIN_CHANNEL_ID   = "241014195884130315"
-RULES_CHANNEL_ID  = "275053802615209986"
-REDDIT_CHANNEL_ID = "362107240963899395"
+LOG_CHANNEL_ID      = "361282322303156224"
+MAIN_CHANNEL_ID     = "241014195884130315"
+RULES_CHANNEL_ID    = "275053802615209986"
+REDDIT_CHANNEL_ID   = "362107240963899395"
+SHOWCASE_CHANNEL_ID = "281178410917822474"
 SUBREDDIT_URL = "skywanderers"
-SUBREDDIT_REFRESH = 30 # Seconds
+SUBREDDIT_REFRESH = 20 # Seconds
 DATABASE = {
     "dbname": "d9um5ikkkmm463",
     "user": "fukkkitgsohzeo",
@@ -50,6 +51,7 @@ ROLES = {
     19:"Legendary Pirate Lord",
     20:"Legendary Pirate King",
 }
+REACTIONS_THRESHOLD = 15
 
 
 # class RedditEmbed(Embed):
@@ -95,19 +97,22 @@ def get_new_posts(subreddit_url, posts_nb=5):
     return data
 
 
-async def check_subreddit(delay=60): # TODO: All stuff in one loop (no for init)
+async def check_subreddit(delay=60):
     await client.wait_until_ready()
-    for i in range(5): # 5 Tries
-        new_posts = get_new_posts(SUBREDDIT_URL, 1)
-        if new_posts is not None:
-            last_post = new_posts[0]
-            break
-        await asyncio.sleep(10)
+    last_post = None
 
     while not client.is_closed:
-        new_posts = get_new_posts(SUBREDDIT_URL, 5)
+        await asyncio.sleep(delay)
 
-        if new_posts is not None:
+        if last_post is None:
+            new_posts = get_new_posts(SUBREDDIT_URL, 1)
+            if new_posts is not None:
+                last_post = new_posts[0]
+
+        else:
+            new_posts = get_new_posts(SUBREDDIT_URL, 5)
+            if new_posts is None:
+                continue
             for post in reversed(new_posts):
                 if post['data']['created_utc'] > last_post['data']['created_utc']:
                     embed = Embed(
@@ -124,13 +129,12 @@ async def check_subreddit(delay=60): # TODO: All stuff in one loop (no for init)
 
                     last_post = post
 
-        await asyncio.sleep(delay)
-
 
 client = Client()
-log_channel     = Object(id=LOG_CHANNEL_ID)
-main_channel    = Object(id=MAIN_CHANNEL_ID)
-reddit_channel  = Object(id=REDDIT_CHANNEL_ID)
+log_channel      = Object(id=LOG_CHANNEL_ID)
+main_channel     = Object(id=MAIN_CHANNEL_ID)
+reddit_channel   = Object(id=REDDIT_CHANNEL_ID)
+showcase_channel = Object(id=SHOWCASE_CHANNEL_ID)
 db = psycopg2.connect(**DATABASE)
 
 
@@ -204,18 +208,26 @@ async def on_message(msg):
         embed = Embed(
             type = 'rich',
             colour = Colour.orange(),
-            title = "SKYWANDERER'S MAIN GUIDANCE COMPUTER",
+            title = "SKYWANDERERS' MAIN GUIDANCE COMPUTER",
         )
         embed.set_image(url="https://cdn.discordapp.com/attachments/279940382656167936/361678736422076418/comp.png")
         embed.add_field(name="Commands handbook", value="!info\n!kick @member\n!redeem activationKey")
-        embed.add_field(name="Subsystems status", value="[ON] Reddit tracking\n[ON] Chat logging\n[ON] Welcome and goodbye\n[ON] Cool easter eggs")
+        embed.add_field(name="Subsystems status", value="[ON] Reddit tracking\n[ON] Chat logging\n[ON] Welcome and goodbye\n[ON] Automated redeem\n[ON] Showcase management\n[ON] Cool easter eggs")
         embed.set_footer(text="Main guidance computer crafted by LeMinaw corp. ltd", icon_url="https://cdn.discordapp.com/avatars/201484914686689280/b6a28b98e51f482052e42009fed8c6c4.png?size=256")
         await client.send_message(msg.channel, embed=embed)
 
-    elif not msg.author.bot and any(w in msg.content.lower() for w in ("skywanderers", "sky1", "sky wanderers")):
-        response = await client.send_message(msg.channel, "Err: Skywanderers pre-aplha: not found :'(")
-        await asyncio.sleep(2)
-        await client.delete_message(response)
+    # elif not msg.author.bot and any(w in msg.content.lower() for w in ("skywanderers", "sky1", "sky wanderers")):
+    #     response = await client.send_message(msg.channel, "Err: Skywanderers pre-aplha: not found :'(")
+    #     await asyncio.sleep(2)
+    #     await client.delete_message(response)
+
+    if msg.channel.id == SHOWCASE_CHANNEL_ID and len(msg.attachments) == 0:
+        if not any(prefix in msg.content for prefix in ("[completed]", "[wip]", "[info]")):
+            await client.delete_message(msg)
+            await client.send_message(msg.author, "You can only submit files or prefixed messages on #showcase. Your message was deleted :(.")
+        else:
+            if "[completed]" in msg.content:
+                await client.add_reaction(msg, "\u2795")
 
     if "<@!%s>" % client.user.id in msg.content:
         sounds = ("beep", "bip", "bzz", "bop", "bup", "bzzz")
@@ -255,6 +267,13 @@ async def on_message_edit(msg_before, msg_after):
         embed.add_field(name="Old content", value=msg_before.content)
         embed.add_field(name="New content", value=msg_after.content)
         await client.send_message(log_channel, embed=embed)
+
+
+@client.event
+async def on_reaction_add(reac, user):
+    if reac.message.channel.id == SHOWCASE_CHANNEL_ID and reac.emoji == "\u2795" and reac.count >= REACTIONS_THRESHOLD:
+        await client.pin_message(reac.message)
+        await client.send_message(main_channel, "A new publication just reached %s reactions in %s! Congratulations, %s." % (REACTIONS_THRESHOLD, showcase_channel.mention, reac.message.author.mention))
 
 
 @client.event
@@ -313,7 +332,7 @@ async def on_member_join(member):
 @client.event
 async def on_member_remove(member):
     msg = "Bye bye, {mention}. " + choice([
-        "We will *not* remember you.",
+        "Just go.",
         "Have peace wandering among the stars <3",
         "It's been fun. Don't come back.",
     ])
