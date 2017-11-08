@@ -222,7 +222,7 @@ async def on_message(msg):
     #     await client.delete_message(response)
 
     if msg.channel.id == SHOWCASE_CHANNEL_ID and len(msg.attachments) == 0:
-        if not any(prefix in msg.content for prefix in ("[completed]", "[wip]", "[info]")):
+        if not any(prefix in msg.content.lower() for prefix in ("[completed]", "[wip]", "[info]")):
             await client.delete_message(msg)
             await client.send_message(msg.author, "You can only submit files or prefixed messages on #showcase. Your message was deleted :(.")
         else:
