@@ -226,7 +226,7 @@ async def on_message(msg):
             await client.delete_message(msg)
             await client.send_message(msg.author, "You can only submit files or prefixed messages on #showcase. Your message was deleted :(.")
         else:
-            if "[completed]" in msg.content:
+            if "[completed]" in msg.content.lower():
                 await client.add_reaction(msg, "\u2795")
 
     if "<@!%s>" % client.user.id in msg.content:
