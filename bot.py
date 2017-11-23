@@ -131,10 +131,10 @@ async def check_subreddit(delay=60):
 
 
 client = Client()
-log_channel      = Object(id=LOG_CHANNEL_ID)
-main_channel     = Object(id=MAIN_CHANNEL_ID)
-reddit_channel   = Object(id=REDDIT_CHANNEL_ID)
-showcase_channel = Object(id=SHOWCASE_CHANNEL_ID)
+log_channel      = client.get_channel(LOG_CHANNEL_ID)
+main_channel     = client.get_channel(MAIN_CHANNEL_ID)
+reddit_channel   = client.get_channel(REDDIT_CHANNEL_ID)
+showcase_channel = client.get_channel(SHOWCASE_CHANNEL_ID)
 db = psycopg2.connect(**DATABASE)
 
 
@@ -221,15 +221,14 @@ async def on_message(msg):
     #     await asyncio.sleep(2)
     #     await client.delete_message(response)
 
-    if msg.channel.id == SHOWCASE_CHANNEL_ID and len(msg.attachments) == 0:
+    if msg.channel.id == SHOWCASE_CHANNEL_ID:
         if "[complete]" in msg.content.lower():
             await client.send_message(msg.author, "`[Complete]` tags are not supposed to work. Please use a `[Completed]` tag instead.")
-        if not any(prefix in msg.content.lower() for prefix in ("[completed]", "[wip]", "[info]")):
+        if not any(prefix in msg.content.lower() for prefix in ("[completed]", "[wip]", "[info]")) and len(msg.attachments) == 0:
             await client.delete_message(msg)
             await client.send_message(msg.author, "You can only submit files or prefixed messages on #showcase. Your message was deleted :(.\n```%s```" % msg.content)
-        else:
-            if "[completed]" in msg.content.lower():
-                await client.add_reaction(msg, "\u2795")
+        elif "[completed]" in msg.content.lower():
+            await client.add_reaction(msg, "\u2795")
 
     if "<@!%s>" % client.user.id in msg.content:
         sounds = ("beep", "bip", "bzz", "bop", "bup", "bzzz")
