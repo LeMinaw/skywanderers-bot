@@ -131,10 +131,6 @@ async def check_subreddit(delay=60):
 
 
 client = Client()
-log_channel      = client.get_channel(LOG_CHANNEL_ID)
-main_channel     = client.get_channel(MAIN_CHANNEL_ID)
-reddit_channel   = client.get_channel(REDDIT_CHANNEL_ID)
-showcase_channel = client.get_channel(SHOWCASE_CHANNEL_ID)
 db = psycopg2.connect(**DATABASE)
 
 
@@ -343,6 +339,13 @@ async def on_member_remove(member):
 @client.event
 async def on_ready():
     print("Logged in as {user.name} ({user.id}).".format(user=client.user))
+
+    global log_channel, main_channel, reddit_channel, showcase_channel
+    log_channel      = client.get_channel(LOG_CHANNEL_ID)
+    main_channel     = client.get_channel(MAIN_CHANNEL_ID)
+    reddit_channel   = client.get_channel(REDDIT_CHANNEL_ID)
+    showcase_channel = client.get_channel(SHOWCASE_CHANNEL_ID)
+
     await client.change_presence(game=Game(name="Skywanderers"))
 
 
