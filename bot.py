@@ -220,7 +220,7 @@ async def on_message(msg):
             title = "SKYWANDERERS' MAIN GUIDANCE COMPUTER",
         )
         embed.set_image(url="https://cdn.discordapp.com/attachments/279940382656167936/361678736422076418/comp.png")
-        embed.add_field(name="Commands handbook", value="!info\n!kick @member\n!redeem activationKey")
+        embed.add_field(name="Commands handbook", value="!info\n!capcom\n!kick @member\n!redeem activationKey")
         embed.add_field(name="Subsystems status", value="[ON] Reddit tracking\n[ON] Chat logging\n[ON] Welcome and goodbye\n[ON] Automated redeem\n[ON] Showcase management\n[ON] Cool easter eggs")
         embed.set_footer(text="Main guidance computer crafted by LeMinaw corp. ltd", icon_url="https://cdn.discordapp.com/avatars/201484914686689280/b6a28b98e51f482052e42009fed8c6c4.png?size=256")
         await client.send_message(msg.channel, embed=embed)
