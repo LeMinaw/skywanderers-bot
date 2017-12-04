@@ -130,11 +130,8 @@ async def check_subreddit(delay=60):
                     last_post = post
 
 
+global log_channel, main_channel, reddit_channel, showcase_channel
 client = Client()
-log_channel      = client.get_channel(LOG_CHANNEL_ID)
-main_channel     = client.get_channel(MAIN_CHANNEL_ID)
-reddit_channel   = client.get_channel(REDDIT_CHANNEL_ID)
-showcase_channel = client.get_channel(SHOWCASE_CHANNEL_ID)
 db = psycopg2.connect(**DATABASE)
 
 
@@ -203,6 +200,9 @@ async def on_message(msg):
                     await client.send_message(msg.author, "Error: This code seems invalid.")
         else:
             await client.send_message(msg.author, "Bad syntax: `!redeem my_activation_code` should work.")
+
+    elif msg.content.startswith('!submit'):
+        pass
 
     elif msg.content.startswith('!info'):
         embed = Embed(
@@ -343,6 +343,12 @@ async def on_member_remove(member):
 @client.event
 async def on_ready():
     print("Logged in as {user.name} ({user.id}).".format(user=client.user))
+
+    log_channel      = await client.get_channel(LOG_CHANNEL_ID)
+    main_channel     = await client.get_channel(MAIN_CHANNEL_ID)
+    reddit_channel   = await client.get_channel(REDDIT_CHANNEL_ID)
+    showcase_channel = await client.get_channel(SHOWCASE_CHANNEL_ID)
+
     await client.change_presence(game=Game(name="Skywanderers"))
 
 
