@@ -200,6 +200,19 @@ async def on_message(msg):
         else:
             await client.send_message(msg.author, "Bad syntax: `!redeem my_activation_code` should work.")
 
+    elif msg.content.startswith('!capcom'):
+        quote = quotes[randint(1, len(quotes) - 1)]
+        quote = [s for s in quote.split('\n') if s]
+
+        embed = Embed(
+            type = 'rich',
+            colour = Colour.blue(),
+            title = "Out-of-context Apollo 11 transcript",
+            description = quote[1]
+        )
+        embed.set_footer(text=quote[0])
+        await client.send_message(msg.channel, embed=embed)
+
     elif msg.content.startswith('!info'):
         embed = Embed(
             type = 'rich',
@@ -347,6 +360,12 @@ async def on_ready():
     showcase_channel = client.get_channel(SHOWCASE_CHANNEL_ID)
 
     await client.change_presence(game=Game(name="Skywanderers"))
+
+    global quotes
+    with open("a11.txt", 'rt') as script_file:
+        script = script_file.read()
+    pattern = re.compile(r'\n\n.+\n.+\n\n', re.MULTILINE)
+    quotes = pattern.findall(script)
 
 
 client.loop.create_task(check_subreddit(SUBREDDIT_REFRESH))
