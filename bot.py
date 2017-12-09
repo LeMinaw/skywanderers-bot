@@ -281,7 +281,7 @@ async def on_message_edit(msg_before, msg_after):
 
 @client.event
 async def on_reaction_add(reac, user):
-    if reac.message.channel.id == SHOWCASE_CHANNEL_ID and reac.emoji == "\u2795" and reac.count == REACTIONS_THRESHOLD:
+    if reac.message.channel.id == SHOWCASE_CHANNEL_ID and reac.emoji == "\u2795" and reac.count >= REACTIONS_THRESHOLD and not reac.message.pinned:
         await client.pin_message(reac.message)
         await client.send_message(main_channel, "A new publication just reached %s reactions in %s! Congratulations, %s." % (REACTIONS_THRESHOLD, showcase_channel.mention, reac.message.author.mention))
 
