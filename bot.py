@@ -51,7 +51,7 @@ ROLES = {
     19:"Legendary Pirate Lord",
     20:"Legendary Pirate King",
 }
-REACTIONS_THRESHOLD = 15
+REACTIONS_THRESHOLD = 20
 
 
 try:
@@ -260,10 +260,12 @@ async def on_message(msg):
 
     if msg.channel.id == SHOWCASE_CHANNEL_ID:
         if "[complete]" in msg.content.lower():
-            await client.send_message(msg.author, "`[Complete]` tags are not supposed to work. Please use a `[Completed]` tag instead.")
+            if not msg.author.bot:
+                await client.send_message(msg.author, "`[Complete]` tags are not supposed to work. Please use a `[Completed]` tag instead.")
         if not any(prefix in msg.content.lower() for prefix in ("[completed]", "[wip]", "[info]")) and len(msg.attachments) == 0:
             await client.delete_message(msg)
-            await client.send_message(msg.author, "You can only submit files or prefixed messages on #showcase. Your message was deleted :(.\n```%s```" % msg.content)
+            if not msg.author.bot:
+                await client.send_message(msg.author, "You can only submit files or prefixed messages on #showcase. Your message was deleted :(.\n```%s```" % msg.content)
         elif "[completed]" in msg.content.lower():
             await client.add_reaction(msg, "\u2795")
 
@@ -308,13 +310,28 @@ async def on_message_edit(msg_before, msg_after):
 
 
 @client.event
-async def on_reaction_add(reac, user):
-    if (reac.message.channel.id == SHOWCASE_CHANNEL_ID
-            and reac.emoji == "\u2795"
-            and reac.count >= REACTIONS_THRESHOLD
-            and not reac.message.pinned):
-        await client.pin_message(reac.message)
-        await client.send_message(main_channel, "A new publication just reached %s reactions in %s! Congratulations, %s." % (REACTIONS_THRESHOLD, showcase_channel.mention, reac.message.author.mention))
+async def on_socket_raw_receive(payload):
+    try:
+        event = json.loads(payload)
+    except UnicodeDecodeError:
+        return
+
+    if (event['t'] == "MESSAGE_REACTION_ADD"
+            and event['d']['channel_id'] == SHOWCASE_CHANNEL_ID
+            and event['d']['emoji']['name'] == "\u2795"):
+
+        chan = client.get_channel(event['d']['channel_id'])
+        msg  = await client.get_message(chan, event['d']['message_id'])
+
+        for reac in msg.reactions:
+            if reac.emoji == "\u2795":
+                reac_nb = reac.count
+                break
+
+        if not msg.pinned and reac_nb >= REACTIONS_THRESHOLD:
+            await client.pin_message(msg)
+            print("lo")
+            # await client.send_message(main_channel, "A new publication just reached %s reactions in %s! Congratulations, %s." % (REACTIONS_THRESHOLD, chan.mention, msg.author.mention))
 
 
 @client.event
