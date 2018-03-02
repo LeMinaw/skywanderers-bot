@@ -54,6 +54,13 @@ ROLES = {
 REACTIONS_THRESHOLD = 15
 
 
+try:
+    from localsettings import *
+except ImportError:
+    print("Using production settings from env vars.")
+
+
+
 # class RedditEmbed(Embed):
 #     def __init__(self, post_data):
 #         super()
