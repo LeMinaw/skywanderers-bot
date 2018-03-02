@@ -1,9 +1,9 @@
-from discord        import Client, Game, Embed, Colour, Object, utils
-from collections    import OrderedDict
-from datetime       import datetime
-from random         import choice, randint
-from hashlib        import sha256
-from os             import getenv
+from discord     import Client, Game, Embed, Colour, Object, utils
+from collections import OrderedDict
+from datetime    import datetime
+from random      import choice, randint
+from hashlib     import sha256
+from os          import getenv
 import requests
 import psycopg2
 import asyncio
@@ -67,6 +67,7 @@ REACTIONS_THRESHOLD = 15
 
 
 class OpenCursor(object):
+    """Cursor context manager"""
     def __init__(self, db):
         self.db = db
     def __enter__(self):
@@ -77,16 +78,15 @@ class OpenCursor(object):
 
 
 def make_dict(coll):
-    """Makes a dict from a collection of sub-collection. Each first items of the collection is a key."""
-    result = {}
-    for subcoll in coll:
-        result[subcoll[0]] = tuple(subcoll[1:])
-    return result
+    """Makes a dict from a collection of sub-collection.
+    Each first items of the collection is a key."""
+    return {x[0]: tuple(x[1:]) for x in coll}
 
 
 def get_new_posts(subreddit_url, posts_nb=5):
     """Returns a dict of the last <posts_nb> new posts in the <subreddit_url> subreddit."""
-    url = "http://www.reddit.com/r/%s/new.json?sort=new&limit=%s" % (subreddit_url, posts_nb)
+    url = "http://www.reddit.com/r/%s/new.json?sort=new&limit=%s"
+    url = url % (subreddit_url, posts_nb)
     data = None
     try:
         data = requests.get(url).json()['data']['children']
@@ -123,8 +123,14 @@ async def check_subreddit(delay=60):
                         timestamp   = datetime.fromtimestamp(int(post['data']['created_utc'])),
                         description = post['data']['selftext'],
                     )
-                    embed.set_author(name=post['data']['author'], url="https://www.reddit.com/user/%s" % post['data']['author'])
-                    embed.set_footer(text="New reddit post", icon_url="https://upload.wikimedia.org/wikipedia/fr/f/fc/Reddit-alien.png")
+                    embed.set_author(
+                        name=post['data']['author'],
+                        url="https://www.reddit.com/user/%s" % post['data']['author']
+                    )
+                    embed.set_footer(
+                        text="New reddit post",
+                        icon_url="https://upload.wikimedia.org/wikipedia/fr/f/fc/Reddit-alien.png"
+                    )
                     await client.send_message(reddit_channel, embed=embed)
 
                     last_post = post
@@ -220,9 +226,24 @@ async def on_message(msg):
             title = "SKYWANDERERS' MAIN GUIDANCE COMPUTER",
         )
         embed.set_image(url="https://cdn.discordapp.com/attachments/279940382656167936/361678736422076418/comp.png")
-        embed.add_field(name="Commands handbook", value="!info\n!capcom\n!kick @member\n!redeem activationKey")
-        embed.add_field(name="Subsystems status", value="[ON] Reddit tracking\n[ON] Chat logging\n[ON] Welcome and goodbye\n[ON] Automated redeem\n[ON] Showcase management\n[ON] Cool easter eggs")
-        embed.set_footer(text="Main guidance computer crafted by LeMinaw corp. ltd", icon_url="https://cdn.discordapp.com/avatars/201484914686689280/b6a28b98e51f482052e42009fed8c6c4.png?size=256")
+        embed.add_field(name="Commands handbook", value=
+            """!info
+            \n!capcom
+            \n!kick @member
+            \n!redeem activationKey"""
+        )
+        embed.add_field(name="Subsystems status", value=
+            """[ON] Reddit tracking
+            \n[ON] Chat logging
+            \n[ON] Welcome and goodbye
+            \n[ON] Automated redeem
+            \n[ON] Showcase management
+            \n[ON] Cool easter eggs"""
+        )
+        embed.set_footer(
+            text="Main guidance computer crafted by LeMinaw corp. ltd",
+            icon_url="https://cdn.discordapp.com/avatars/201484914686689280/b6a28b98e51f482052e42009fed8c6c4.png?size=256"
+        )
         await client.send_message(msg.channel, embed=embed)
 
     # elif not msg.author.bot and any(w in msg.content.lower() for w in ("skywanderers", "sky1", "sky wanderers")):
@@ -281,7 +302,10 @@ async def on_message_edit(msg_before, msg_after):
 
 @client.event
 async def on_reaction_add(reac, user):
-    if reac.message.channel.id == SHOWCASE_CHANNEL_ID and reac.emoji == "\u2795" and reac.count >= REACTIONS_THRESHOLD and not reac.message.pinned:
+    if (reac.message.channel.id == SHOWCASE_CHANNEL_ID
+            and reac.emoji == "\u2795"
+            and reac.count >= REACTIONS_THRESHOLD
+            and not reac.message.pinned):
         await client.pin_message(reac.message)
         await client.send_message(main_channel, "A new publication just reached %s reactions in %s! Congratulations, %s." % (REACTIONS_THRESHOLD, showcase_channel.mention, reac.message.author.mention))
 
