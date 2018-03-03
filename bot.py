@@ -3,10 +3,13 @@ from collections import OrderedDict
 from datetime    import datetime
 from random      import choice, randint
 from hashlib     import sha256
+from redis       import from_url, StrictRedis
+from time        import time
 from os          import getenv
 import requests
 import psycopg2
 import asyncio
+import pickle
 import json
 import sys
 import re
@@ -39,6 +42,7 @@ DATABASE = {
     "host": "ec2-184-73-199-72.compute-1.amazonaws.com",
     "port": 5432
 }
+REDIS_URL = getenv('REDIS_URL')
 ROLES = {
     11:"Supporter",
     12:"Pioneer",
@@ -52,13 +56,13 @@ ROLES = {
     20:"Legendary Pirate King",
 }
 REACTIONS_THRESHOLD = 20
+RESET_MUTES_ON_LOAD = False
 
 
 try:
     from localsettings import *
 except ImportError:
     print("Using production settings from env vars.")
-
 
 
 # class RedditEmbed(Embed):
@@ -73,7 +77,7 @@ except ImportError:
 #     )
 
 
-class OpenCursor(object):
+class OpenCursor:
     """Cursor context manager"""
     def __init__(self, db):
         self.db = db
@@ -82,6 +86,26 @@ class OpenCursor(object):
         return self.cursor
     def __exit__(self, type, value, traceback):
         self.cursor.close()
+
+
+class RedisDict:
+    def __init__(self, redis, redis_key, data={}):
+        if type(data) is not dict:
+            raise TypeError
+        self.data = data
+        self.redis = redis
+        self.redis_key = redis_key
+
+    def save(self):
+        data = pickle.dumps(self.data)
+        self.redis.set(self.redis_key, data)
+
+    def load(self):
+        data = self.redis.get(self.redis_key)
+        if data is None:
+            self.data = {}
+        else:
+            self.data = pickle.loads(data)
 
 
 def make_dict(coll):
@@ -145,6 +169,8 @@ async def check_subreddit(delay=60):
 
 client = Client()
 db = psycopg2.connect(**DATABASE)
+redis = from_url(REDIS_URL)
+mutes = RedisDict(redis=redis, redis_key='mutes')
 
 
 @client.event
@@ -175,6 +201,51 @@ async def on_message(msg):
                 await client.send_message(msg.author, "Bad syntax: `!kick @member` should work.")
         else:
             await client.send_message(msg.author, "You are not allowed to kick people in this channel.")
+
+    if msg.content.startswith('!mute'):
+        if msg.author.server_permissions.mute_members:
+            results = re.search(r'^!mute <@(\d+)>(?: (\d+))?$', msg.content)
+            if results is not None:
+                user_id = results.group(1)
+                minutes = results.group(2)
+
+                muted_role = utils.get(msg.author.server.roles, name='Muted')
+                user = msg.server.get_member(user_id)
+                muted = muted_role not in user.roles
+                if muted:
+                    await client.add_roles(user, muted_role)
+                else:
+                    await client.remove_roles(user, muted_role)
+
+                mutes.load()
+                if muted and minutes is not None:
+                    mutes.data[user.id] = time() + int(minutes) * 60
+                elif not muted and user.id in mutes.data:
+                    del mutes.data[user.id]
+                mutes.save()
+
+                action = "muted" if muted else "unmuted"
+                duration = "for %sm" % minutes if minutes is not None else "forever"
+                await client.send_message(log_channel, embed=Embed(
+                    title = "MUTING",
+                    description = "**{usr} has been {act} by {ath} ({dur})**".format(
+                        usr = user.mention,
+                        act = action,
+                        ath = msg.author.mention,
+                        dur = duration
+                    ),
+                    type = 'rich',
+                    colour = Colour.orange()
+                ))
+                await client.send_message(user, embed=Embed(
+                    title = "You have been {act} from Skywanderers' discord server {dur}.".format(act=action, dur=duration),
+                    type = 'rich',
+                    colour = Colour.orange()
+                ))
+            else:
+                await client.send_message(msg.author, "Bad syntax: `!mute @member` or `!mute @member 15` should work.")
+        else:
+            await client.send_message(msg.author, "You are not allowed to mute people in this channel.")
 
     elif msg.content.startswith('!redeem'):
         if re.match(r'^!redeem (\S+)$', msg.content):
@@ -413,7 +484,51 @@ async def on_ready():
     pattern = re.compile(r'\n\n.+\n.+\n\n', re.MULTILINE)
     quotes = pattern.findall(script)
 
+    # Loading redis mutes
+    if RESET_MUTES_ON_LOAD:
+        mutes.save()
+        print("Data reinit done.")
+    try:
+        mutes.load()
+        print("Data loading sucessful.")
+    except NameError:
+        print("Error occured while loading data. Attempting to reinit.")
+        mutes.save()
+        print("Data reinit done.")
+
+
+async def check_mutes(delay=60):
+    await client.wait_until_ready()
+
+    while not client.is_closed:
+        await asyncio.sleep(delay)
+        mutes.load()
+        user_ids = list(mutes.data.keys())
+        for user_id in user_ids:
+            if time() > mutes.data[user_id]:
+                server = list(client.servers)[0]
+                muted_role = utils.get(server.roles, name='Muted')
+                user = server.get_member(user_id)
+                await client.remove_roles(user, muted_role)
+
+                del mutes.data[user_id]
+                mutes.save()
+
+                await client.send_message(log_channel, embed=Embed(
+                    title = "MUTING",
+                    description = "**{usr} has been unmuted (time elapsed)**".format(usr = user.mention),
+                    type = 'rich',
+                    colour = Colour.orange()
+                ))
+                await client.send_message(user, embed=Embed(
+                    title = "You have been unmuted from Skywanderers' discord server.",
+                    description = "Welcome back!",
+                    type = 'rich',
+                    colour = Colour.orange()
+                ))
+
 
 client.loop.create_task(check_subreddit(SUBREDDIT_REFRESH))
+client.loop.create_task(check_mutes())
 client.run(DISCORD_TOKEN)
 db.close()
