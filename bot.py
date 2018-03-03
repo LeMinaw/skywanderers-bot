@@ -124,7 +124,7 @@ def get_new_posts(subreddit_url, posts_nb=5):
     except (KeyboardInterrupt, SystemExit):
         raise
     except:
-        print(sys.exc_info())
+        print("Failed to sync with Reddit servers.")
     return data
 
 
@@ -400,7 +400,7 @@ async def on_socket_raw_receive(payload):
         if not msg.pinned and reac_nb >= REACTIONS_THRESHOLD:
             await client.pin_message(msg)
             print("lo")
-            # await client.send_message(main_channel, "A new publication just reached %s reactions in %s! Congratulations, %s." % (REACTIONS_THRESHOLD, chan.mention, msg.author.mention))
+            await client.send_message(main_channel, "A publication just reached %s reactions in %s! Congratulations, %s." % (REACTIONS_THRESHOLD, chan.mention, msg.author.mention))
 
 
 @client.event
@@ -470,15 +470,20 @@ async def on_member_remove(member):
 async def on_ready():
     print("Logged in as {user.name} ({user.id}).".format(user=client.user))
 
+    global mutes
+    global quotes
     global log_channel, main_channel, reddit_channel, showcase_channel
+
+    # Getting channels
     log_channel      = client.get_channel(LOG_CHANNEL_ID)
     main_channel     = client.get_channel(MAIN_CHANNEL_ID)
     reddit_channel   = client.get_channel(REDDIT_CHANNEL_ID)
     showcase_channel = client.get_channel(SHOWCASE_CHANNEL_ID)
 
+    # Changing presence
     await client.change_presence(game=Game(name="Skywanderers"))
 
-    global quotes
+    # Computing A11 quotes
     with open("a11.txt", 'rt') as script_file:
         script = script_file.read()
     pattern = re.compile(r'\n\n.+\n.+\n\n', re.MULTILINE)
