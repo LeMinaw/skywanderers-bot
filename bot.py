@@ -175,180 +175,190 @@ mutes = RedisDict(redis=redis, redis_key='mutes')
 
 @client.event
 async def on_message(msg):
-    if msg.content.startswith('!kick'):
-        if msg.author.permissions_in(msg.channel).kick_members:
-            if re.match(r'^!kick <@(\d+)>$', msg.content):
-                user_id = re.search(r'^!kick <@(\d+)>$', msg.content).group(1)
-                user = msg.server.get_member(user_id)
+    mutes.load()
+    if msg.author.id in mutes.data:
+        await client.delete_message(msg)
+        await client.send_message(msg.author, "You're currently muted. Your message was deleted :(.\n```%s```" % msg.content)
 
-                await client.kick(user)
+    else:
+        if msg.content.startswith('!kick'):
+            if msg.author.permissions_in(msg.channel).kick_members:
+                if re.match(r'^!kick <@(\d+)>$', msg.content):
+                    user_id = re.search(r'^!kick <@(\d+)>$', msg.content).group(1)
+                    user = msg.server.get_member(user_id)
 
-                embed = Embed(
-                    title = "KICKING",
-                    type = 'rich',
-                    description = "**{user} has been kicked from the server.**".format(user=user),
-                    colour = Colour.orange()
-                )
-                await client.send_message(log_channel, embed=embed)
+                    await client.kick(user)
 
-                embed = Embed(
-                    title = "{user} has been kicked from the server.".format(user=user.name),
-                    type = 'rich',
-                    colour = Colour.orange()
-                )
-                await client.send_message(main_channel, embed=embed)
-            else:
-                await client.send_message(msg.author, "Bad syntax: `!kick @member` should work.")
-        else:
-            await client.send_message(msg.author, "You are not allowed to kick people in this channel.")
+                    embed = Embed(
+                        title = "KICKING",
+                        type = 'rich',
+                        description = "**{user} has been kicked from the server.**".format(user=user),
+                        colour = Colour.orange()
+                    )
+                    await client.send_message(log_channel, embed=embed)
 
-    if msg.content.startswith('!mute'):
-        if msg.author.server_permissions.mute_members:
-            results = re.search(r'^!mute <@(\d+)>(?: (\d+))?$', msg.content)
-            if results is not None:
-                user_id = results.group(1)
-                minutes = results.group(2)
-
-                muted_role = utils.get(msg.author.server.roles, name='Muted')
-                user = msg.server.get_member(user_id)
-                muted = muted_role not in user.roles
-                if muted:
-                    await client.add_roles(user, muted_role)
+                    embed = Embed(
+                        title = "{user} has been kicked from the server.".format(user=user.name),
+                        type = 'rich',
+                        colour = Colour.orange()
+                    )
+                    await client.send_message(main_channel, embed=embed)
                 else:
-                    await client.remove_roles(user, muted_role)
-
-                mutes.load()
-                if muted and minutes is not None:
-                    mutes.data[user.id] = time() + int(minutes) * 60
-                elif not muted and user.id in mutes.data:
-                    del mutes.data[user.id]
-                mutes.save()
-
-                action = "muted" if muted else "unmuted"
-                duration = "for %sm" % minutes if minutes is not None else "forever"
-                await client.send_message(log_channel, embed=Embed(
-                    title = "MUTING",
-                    description = "**{usr} has been {act} by {ath} ({dur})**".format(
-                        usr = user.mention,
-                        act = action,
-                        ath = msg.author.mention,
-                        dur = duration
-                    ),
-                    type = 'rich',
-                    colour = Colour.orange()
-                ))
-                await client.send_message(user, embed=Embed(
-                    title = "You have been {act} from Skywanderers' discord server {dur}.".format(act=action, dur=duration),
-                    type = 'rich',
-                    colour = Colour.orange()
-                ))
+                    await client.send_message(msg.author, "Bad syntax: `!kick @member` should work.")
             else:
-                await client.send_message(msg.author, "Bad syntax: `!mute @member` or `!mute @member 15` should work.")
-        else:
-            await client.send_message(msg.author, "You are not allowed to mute people in this channel.")
+                await client.send_message(msg.author, "You are not allowed to kick people in this channel.")
 
-    elif msg.content.startswith('!redeem'):
-        if re.match(r'^!redeem (\S+)$', msg.content):
-            key = re.search(r'^!redeem (\S+)$', msg.content).group(1)
-            key = key.encode('utf-8')
-            key = sha256(key).hexdigest()
+        if msg.content.startswith('!mute'):
+            if msg.author.server_permissions.kick_members:
+                results = re.search(r'^!mute <@(\d+)>(?: (\d+))?$', msg.content)
+                if results is not None:
+                    user_id = results.group(1)
+                    minutes = results.group(2) or -1
 
-            with OpenCursor(db) as cur:
-                cur.execute("SELECT code, active_disc, rank FROM register_activationcode")
-                db_keys = make_dict(cur.fetchall())
-                try:
-                    db_key = db_keys[key]
-                    if db_key[0]:
-                        usr_id = msg.author.id
-                        usr_name = msg.author.name
-                        cur.execute("SELECT * FROM register_discordmember WHERE user_id = %s", (usr_id,))
-                        db_usr = cur.fetchone()
-                        if db_usr is None:
-                            rank_id = db_key[1]
-                            try:
-                                role = utils.get(msg.server.roles, name=ROLES[rank_id])
-                                await client.add_roles(msg.author, role)
-                                cur.execute("INSERT INTO register_discordmember (username, user_id, user_rank) VALUES (%s, %s, %s)", (usr_name, usr_id, rank_id))
-                                cur.execute("UPDATE register_activationcode SET active_disc = FALSE WHERE code = %s", (key,))
-                                db.commit()
-                                await client.send_message(main_channel, "%s is now %s! Thanks for supporting us!" % (msg.author.mention, role.mention))
-                            except:
-                                print(sys.exc_info())
-                                await client.send_message(msg.author, "Error: Something weird occured. Please contact a moderator.")
-                        else:
-                            await client.send_message(msg.author, "Error: This user already used an activation code.")
+                    user = msg.server.get_member(user_id)
+
+                    mutes.load()
+                    if user.id in mutes.data and minutes == -1:
+                        del mutes.data[user.id]
+                        muted = False
                     else:
-                        await client.send_message(msg.author, "Error: This code has already been used on discord.")
-                except KeyError:
-                    await client.send_message(msg.author, "Error: This code seems invalid.")
-        else:
-            await client.send_message(msg.author, "Bad syntax: `!redeem my_activation_code` should work.")
+                        mutes.data[user.id] = int(minutes)
+                        muted = True
+                    mutes.save()
 
-    elif msg.content.startswith('!capcom'):
-        quote = quotes[randint(1, len(quotes) - 1)]
-        quote = [s for s in quote.split('\n') if s]
-
-        embed = Embed(
-            type = 'rich',
-            colour = Colour.blue(),
-            title = "Out-of-context Apollo 11 transcript",
-            description = quote[1]
-        )
-        embed.set_footer(text=quote[0])
-        await client.send_message(msg.channel, embed=embed)
-
-    elif msg.content.startswith('!info'):
-        embed = Embed(
-            type = 'rich',
-            colour = Colour.orange(),
-            title = "SKYWANDERERS' MAIN GUIDANCE COMPUTER",
-        )
-        embed.set_image(url="https://cdn.discordapp.com/attachments/279940382656167936/361678736422076418/comp.png")
-        embed.add_field(name="Commands handbook", value=
-                "!info"
-                "\n!capcom"
-                "\n!kick @member"
-                "\n!redeem activationKey")
-        embed.add_field(name="Subsystems status", value=
-                "[ON] Reddit tracking"
-                "\n[ON] Chat logging"
-                "\n[ON] Welcome and goodbye"
-                "\n[ON] Automated redeem"
-                "\n[ON] Showcase management"
-                "\n[ON] Cool easter eggs")
-        embed.set_footer(
-            text="Main guidance computer crafted by LeMinaw corp. ltd",
-            icon_url="https://cdn.discordapp.com/avatars/201484914686689280/b6a28b98e51f482052e42009fed8c6c4.png?size=256"
-        )
-        await client.send_message(msg.channel, embed=embed)
-
-    # elif not msg.author.bot and any(w in msg.content.lower() for w in ("skywanderers", "sky1", "sky wanderers")):
-    #     response = await client.send_message(msg.channel, "Err: Skywanderers pre-aplha: not found :'(")
-    #     await asyncio.sleep(2)
-    #     await client.delete_message(response)
-
-    if msg.channel.id == SHOWCASE_CHANNEL_ID:
-        if "[complete]" in msg.content.lower():
-            if not msg.author.bot:
-                await client.send_message(msg.author, "`[Complete]` tags are not supposed to work. Please use a `[Completed]` tag instead.")
-        if not any(prefix in msg.content.lower() for prefix in ("[completed]", "[wip]", "[info]")) and len(msg.attachments) == 0:
-            await client.delete_message(msg)
-            if not msg.author.bot:
-                await client.send_message(msg.author, "You can only submit files or prefixed messages on #showcase. Your message was deleted :(.\n```%s```" % msg.content)
-        elif "[completed]" in msg.content.lower():
-            await client.add_reaction(msg, "\u2795")
-
-    if "<@!%s>" % client.user.id in msg.content:
-        sounds = ("beep", "bip", "bzz", "bop", "bup", "bzzz")
-        sounds_nb = randint(1, 4)
-        response = ''
-        for i in range(sounds_nb):
-            if i == sounds_nb - 1:
-                sep = "."
+                    action = "muted" if muted else "unmuted"
+                    duration = "for %sm" % minutes if minutes != -1 else "forever"
+                    await client.send_message(log_channel, embed=Embed(
+                        title = "MUTING",
+                        description = "**{usr} has been {act} by {ath} ({dur})**".format(
+                            usr = user.mention,
+                            act = action,
+                            ath = msg.author.mention,
+                            dur = duration
+                        ),
+                        type = 'rich',
+                        colour = Colour.orange()
+                    ))
+                    await client.send_message(user, embed=Embed(
+                        title = "You have been {act} from Skywanderers' discord server {dur}.".format(act=action, dur=duration),
+                        type = 'rich',
+                        colour = Colour.orange()
+                    ))
+                else:
+                    await client.send_message(msg.author, "Bad syntax: `!mute @member` or `!mute @member 15` should work.")
             else:
-                sep = ", "
-            response += "%s%s" % (choice(sounds), sep)
-        await client.send_message(msg.channel, response)
+                await client.send_message(msg.author, "You are not allowed to mute people in this channel.")
+
+        elif msg.content.startswith('!redeem'):
+            if re.match(r'^!redeem (\S+)$', msg.content):
+                key = re.search(r'^!redeem (\S+)$', msg.content).group(1)
+                key = key.encode('utf-8')
+                key = sha256(key).hexdigest()
+
+                with OpenCursor(db) as cur:
+                    cur.execute("SELECT code, active_disc, rank FROM register_activationcode")
+                    db_keys = make_dict(cur.fetchall())
+                    try:
+                        db_key = db_keys[key]
+                        if db_key[0]:
+                            usr_id = msg.author.id
+                            usr_name = msg.author.name
+                            cur.execute("SELECT * FROM register_discordmember WHERE user_id = %s", (usr_id,))
+                            db_usr = cur.fetchone()
+                            if db_usr is None:
+                                rank_id = db_key[1]
+                                try:
+                                    role = utils.get(msg.server.roles, name=ROLES[rank_id])
+                                    await client.add_roles(msg.author, role)
+                                    cur.execute("INSERT INTO register_discordmember (username, user_id, user_rank) VALUES (%s, %s, %s)", (usr_name, usr_id, rank_id))
+                                    cur.execute("UPDATE register_activationcode SET active_disc = FALSE WHERE code = %s", (key,))
+                                    db.commit()
+                                    await client.send_message(main_channel, "%s is now %s! Thanks for supporting us!" % (msg.author.mention, role.mention))
+                                except:
+                                    print(sys.exc_info())
+                                    await client.send_message(msg.author, "Error: Something weird occured. Please contact a moderator.")
+                            else:
+                                await client.send_message(msg.author, "Error: This user already used an activation code.")
+                        else:
+                            await client.send_message(msg.author, "Error: This code has already been used on discord.")
+                    except KeyError:
+                        await client.send_message(msg.author, "Error: This code seems invalid.")
+            else:
+                await client.send_message(msg.author, "Bad syntax: `!redeem my_activation_code` should work.")
+
+        elif msg.content.startswith('!capcom'):
+            quote = quotes[randint(1, len(quotes) - 1)]
+            quote = [s for s in quote.split('\n') if s]
+
+            embed = Embed(
+                type = 'rich',
+                colour = Colour.blue(),
+                title = "Out-of-context Apollo 11 transcript",
+                description = quote[1]
+            )
+            embed.set_footer(text=quote[0])
+            await client.send_message(msg.channel, embed=embed)
+
+        elif msg.content.startswith('!info') or msg.content.startswith('!mgc'):
+            embed = Embed(
+                type = 'rich',
+                colour = Colour.orange(),
+                title = "SKYWANDERERS' MAIN GUIDANCE COMPUTER",
+            )
+            embed.set_image(url="https://cdn.discordapp.com/attachments/279940382656167936/361678736422076418/comp.png")
+            embed.add_field(name="Commands handbook", value=
+                    "!info or !mgc"
+                    "\n!capcom"
+                    "\n!redeem activationKey"
+                    "\n!kick @member"
+                    "\n!mute @member"
+                    "\n!mute @member minutes")
+            embed.add_field(name="Subsystems status", value=
+                    "[ON] Reddit tracking"
+                    "\n[ON] Chat logging"
+                    "\n[ON] Welcome and goodbye"
+                    "\n[ON] Automated redeem"
+                    "\n[ON] Showcase management"
+                    "\n[ON] Moderation tools"
+                    "\n[ON] Cool easter eggs")
+            embed.set_footer(
+                text="Main guidance computer crafted by LeMinaw corp. ltd",
+                icon_url="https://cdn.discordapp.com/avatars/201484914686689280/b6a28b98e51f482052e42009fed8c6c4.png?size=256"
+            )
+            await client.send_message(msg.channel, embed=embed)
+
+        # elif not msg.author.bot and any(w in msg.content.lower() for w in ("skywanderers", "sky1", "sky wanderers")):
+        #     response = await client.send_message(msg.channel, "Err: Skywanderers pre-aplha: not found :'(")
+        #     await asyncio.sleep(2)
+        #     await client.delete_message(response)
+
+        if msg.channel.id == SHOWCASE_CHANNEL_ID:
+            if "[complete]" in msg.content.lower():
+                if not msg.author.bot:
+                    await client.send_message(msg.author, "`[Complete]` tags are not supposed to work. Please use a `[Completed]` tag instead.")
+            if not any(prefix in msg.content.lower() for prefix in ("[completed]", "[wip]", "[info]")) and len(msg.attachments) == 0:
+                await client.delete_message(msg)
+                if not msg.author.bot:
+                    await client.send_message(msg.author, "You can only submit files or prefixed messages on #showcase. Your message was deleted :(.\n```%s```" % msg.content)
+            elif "[completed]" in msg.content.lower():
+                await client.add_reaction(msg, "\u2795")
+
+        if client.user.mentioned_in(msg) and not msg.mention_everyone:
+            sounds = ("beep", "bip", "bzz", "bop", "bup", "bzzz")
+            sounds_nb = randint(1, 4)
+            response = ''
+            for i in range(sounds_nb):
+                if i == sounds_nb - 1:
+                    sep = "."
+                else:
+                    sep = ", "
+                response += "%s%s" % (choice(sounds), sep)
+            await client.send_message(msg.channel, response)
+
+        if re.match(r"(?:\W|^)wew(?:\W|$)", msg.content, flags=re.I):
+            embed = Embed(type='rich', colour=Colour.blue())
+            embed.set_image(url="https://cdn.discordapp.com/attachments/241022918807519232/359170809001934848/seal_wew.png")
+            await client.send_message(msg.channel, embed=embed)
 
 
 @client.event
@@ -510,14 +520,13 @@ async def check_mutes(delay=60):
         mutes.load()
         user_ids = list(mutes.data.keys())
         for user_id in user_ids:
-            if time() > mutes.data[user_id]:
-                server = list(client.servers)[0]
-                muted_role = utils.get(server.roles, name='Muted')
-                user = server.get_member(user_id)
-                await client.remove_roles(user, muted_role)
-
+            end_time = mutes.data[user_id]
+            if time() > end_time > 0:
                 del mutes.data[user_id]
                 mutes.save()
+
+                server = list(client.servers)[0]
+                user = server.get_member(user_id)
 
                 await client.send_message(log_channel, embed=Embed(
                     title = "MUTING",
