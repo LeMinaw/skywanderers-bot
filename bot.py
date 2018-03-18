@@ -5,127 +5,19 @@ from random      import choice, randint
 from hashlib     import sha256
 from redis       import from_url, StrictRedis
 from time        import time
-from os          import getenv
-import requests
 import psycopg2
 import asyncio
-import pickle
 import json
 import sys
 import re
 
+from utils import *
 
-DISCORD_TOKEN = getenv('DISCORD_TOKEN')
-WATCH_CHANNELS_IDS = [
-    "241014195884130315",
-    "342383722185883648",
-    "271723356795961345",
-    "281178410917822474",
-    "352907720975843329",
-    "271382095383887872",
-    "358061597580722199",
-    "283816917368832000",
-    "317360477292331011",
-    "291336725589000204"
-]
-LOG_CHANNEL_ID      = "361282322303156224"
-MAIN_CHANNEL_ID     = "241014195884130315"
-RULES_CHANNEL_ID    = "275053802615209986"
-REDDIT_CHANNEL_ID   = "362107240963899395"
-SHOWCASE_CHANNEL_ID = "281178410917822474"
-SUBREDDIT_URL = "skywanderers"
-SUBREDDIT_REFRESH = 20 # Seconds
-DATABASE = {
-    "dbname": "d9um5ikkkmm463",
-    "user": "fukkkitgsohzeo",
-    "password": getenv('DB_PWD'),
-    "host": "ec2-184-73-199-72.compute-1.amazonaws.com",
-    "port": 5432
-}
-REDIS_URL = getenv('REDIS_URL')
-ROLES = {
-    11:"Supporter",
-    12:"Pioneer",
-    13:"Explorer",
-    14:"Entrepreneur",
-    15:"Pirate",
-    16:"Corporate Mogul",
-    17:"Adventurer",
-    18:"Pirate Lord",
-    19:"Legendary Pirate Lord",
-    20:"Legendary Pirate King",
-}
-REACTIONS_THRESHOLD = 20
-RESET_MUTES_ON_LOAD = False
-
-
+from settings import *
 try:
     from localsettings import *
 except ImportError:
     print("Using production settings from env vars.")
-
-
-# class RedditEmbed(Embed):
-#     def __init__(self, post_data):
-#         super()
-#         type = 'rich',
-#         colour = Colour.green(),
-#         title       = post['data']['title'],
-#         url         = post['data']['url'],
-#         timestamp   = datetime.fromtimestamp(int(post['data']['created_utc'])),
-#         description = post['data']['selftext'],
-#     )
-
-
-class OpenCursor:
-    """Cursor context manager"""
-    def __init__(self, db):
-        self.db = db
-    def __enter__(self):
-        self.cursor = self.db.cursor()
-        return self.cursor
-    def __exit__(self, type, value, traceback):
-        self.cursor.close()
-
-
-class RedisDict:
-    def __init__(self, redis, redis_key, data={}):
-        if type(data) is not dict:
-            raise TypeError
-        self.data = data
-        self.redis = redis
-        self.redis_key = redis_key
-
-    def save(self):
-        data = pickle.dumps(self.data)
-        self.redis.set(self.redis_key, data)
-
-    def load(self):
-        data = self.redis.get(self.redis_key)
-        if data is None:
-            self.data = {}
-        else:
-            self.data = pickle.loads(data)
-
-
-def make_dict(coll):
-    """Makes a dict from a collection of sub-collection.
-    Each first items of the collection is a key."""
-    return {x[0]: tuple(x[1:]) for x in coll}
-
-
-def get_new_posts(subreddit_url, posts_nb=5):
-    """Returns a dict of the last <posts_nb> new posts in the <subreddit_url> subreddit."""
-    url = "http://www.reddit.com/r/%s/new.json?sort=new&limit=%s"
-    url = url % (subreddit_url, posts_nb)
-    data = None
-    try:
-        data = requests.get(url).json()['data']['children']
-    except (KeyboardInterrupt, SystemExit):
-        raise
-    except:
-        print("Failed to sync with Reddit servers.")
-    return data
 
 
 async def check_subreddit(delay=60):
