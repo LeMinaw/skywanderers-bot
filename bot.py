@@ -63,7 +63,7 @@ async def on_message(msg):
 
         if msg.content.startswith('!mute'):
             if msg.author.server_permissions.kick_members:
-                results = re.search(r'^!mute <@(\d+)>(?: (\d+))?$', msg.content)
+                results = re.search(r'^!mute <@!?(\d+)>(?: (\d+))?$', msg.content)
                 if results is not None:
                     user_id = results.group(1)
                     minutes = results.group(2) or -1
