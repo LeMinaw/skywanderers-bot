@@ -20,45 +20,6 @@ except ImportError:
     print("Using production settings from env vars.")
 
 
-async def check_subreddit(delay=60):
-    await client.wait_until_ready()
-    last_post = None
-
-    while not client.is_closed:
-        await asyncio.sleep(delay)
-
-        if last_post is None:
-            new_posts = get_new_posts(SUBREDDIT_URL, 1)
-            if new_posts is not None:
-                last_post = new_posts[0]
-
-        else:
-            new_posts = get_new_posts(SUBREDDIT_URL, 5)
-            if new_posts is None:
-                continue
-            for post in reversed(new_posts):
-                if post['data']['created_utc'] > last_post['data']['created_utc']:
-                    embed = Embed(
-                        type = 'rich',
-                        colour = Colour.green(),
-                        title       = post['data']['title'],
-                        url         = post['data']['url'],
-                        timestamp   = datetime.fromtimestamp(int(post['data']['created_utc'])),
-                        description = post['data']['selftext'],
-                    )
-                    embed.set_author(
-                        name=post['data']['author'],
-                        url="https://www.reddit.com/user/%s" % post['data']['author']
-                    )
-                    embed.set_footer(
-                        text="New reddit post",
-                        icon_url="https://upload.wikimedia.org/wikipedia/fr/f/fc/Reddit-alien.png"
-                    )
-                    await client.send_message(reddit_channel, embed=embed)
-
-                    last_post = post
-
-
 client = Client()
 db = psycopg2.connect(**DATABASE)
 redis = from_url(REDIS_URL)
@@ -206,7 +167,7 @@ async def on_message(msg):
                     "\n!mute @member"
                     "\n!mute @member minutes")
             embed.add_field(name="Subsystems status", value=
-                    "[ON] Reddit tracking"
+                    "[OFF] Reddit tracking"
                     "\n[ON] Chat logging"
                     "\n[ON] Welcome and goodbye"
                     "\n[ON] Automated redeem"
@@ -379,8 +340,8 @@ async def on_ready():
     # Getting channels
     log_channel      = client.get_channel(LOG_CHANNEL_ID)
     main_channel     = client.get_channel(MAIN_CHANNEL_ID)
-    reddit_channel   = client.get_channel(REDDIT_CHANNEL_ID)
     showcase_channel = client.get_channel(SHOWCASE_CHANNEL_ID)
+    # reddit_channel   = client.get_channel(REDDIT_CHANNEL_ID)
 
     # Changing presence
     await client.change_presence(game=Game(name="Skywanderers"))
@@ -433,8 +394,46 @@ async def check_mutes(delay=60):
                     colour = Colour.orange()
                 ))
 
+# async def check_subreddit(delay=60):
+#     await client.wait_until_ready()
+#     last_post = None
+#
+#     while not client.is_closed:
+#         await asyncio.sleep(delay)
+#
+#         if last_post is None:
+#             new_posts = get_new_posts(SUBREDDIT_URL, 1)
+#             if new_posts is not None:
+#                 last_post = new_posts[0]
+#
+#         else:
+#             new_posts = get_new_posts(SUBREDDIT_URL, 5)
+#             if new_posts is None:
+#                 continue
+#             for post in reversed(new_posts):
+#                 if post['data']['created_utc'] > last_post['data']['created_utc']:
+#                     embed = Embed(
+#                         type = 'rich',
+#                         colour = Colour.green(),
+#                         title       = post['data']['title'],
+#                         url         = post['data']['url'],
+#                         timestamp   = datetime.fromtimestamp(int(post['data']['created_utc'])),
+#                         description = post['data']['selftext'],
+#                     )
+#                     embed.set_author(
+#                         name=post['data']['author'],
+#                         url="https://www.reddit.com/user/%s" % post['data']['author']
+#                     )
+#                     embed.set_footer(
+#                         text="New reddit post",
+#                         icon_url="https://upload.wikimedia.org/wikipedia/fr/f/fc/Reddit-alien.png"
+#                     )
+#                     await client.send_message(reddit_channel, embed=embed)
+#
+#                     last_post = post
 
-client.loop.create_task(check_subreddit(SUBREDDIT_REFRESH))
+
+# client.loop.create_task(check_subreddit(SUBREDDIT_REFRESH))
 client.loop.create_task(check_mutes())
 client.run(DISCORD_TOKEN)
 db.close()
