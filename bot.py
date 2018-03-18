@@ -216,7 +216,7 @@ async def on_message(msg):
 
 @client.event
 async def on_message_delete(msg):
-    if msg.channel.id in WATCH_CHANNELS_IDS:
+    if msg.channel.id not in DONT_LOG_CHANNELS_IDS:
         embed = Embed(
             title = "DELETION",
             type = 'rich',
@@ -229,7 +229,7 @@ async def on_message_delete(msg):
 
 @client.event
 async def on_message_edit(msg_before, msg_after):
-    if msg_before.channel.id in WATCH_CHANNELS_IDS and msg_before.content != msg_after.content:
+    if msg_before.channel.id not in DONT_LOG_CHANNELS_IDS and msg_before.content != msg_after.content:
         embed = Embed(
             title = "EDITION",
             type = 'rich',
