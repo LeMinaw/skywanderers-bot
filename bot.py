@@ -98,7 +98,7 @@ async def on_message(msg):
                         colour = Colour.orange()
                     ))
                 else:
-                    await client.send_message(msg.author, "Bad syntax: `!mute @member` or `!mute @member 15` should work.")
+                    await client.send_message(msg.author, "Bad syntax: `%s`.\n `!mute @member` or `!mute @member 15` should work." % msg.content)
             else:
                 await client.send_message(msg.author, "You are not allowed to mute people in this channel.")
 
