@@ -1,4 +1,5 @@
 from discord     import Client, Game, Embed, Colour, Object, utils
+from twitch      import TwitchClient
 from collections import OrderedDict
 from datetime    import datetime
 from random      import choice, randint
@@ -11,6 +12,7 @@ import json
 import sys
 import re
 
+
 from utils import *
 
 from settings import *
@@ -21,6 +23,7 @@ except ImportError:
 
 
 client = Client()
+tw_client = TwitchClient(TWITCH_CLIENT_ID)
 db = psycopg2.connect(**DATABASE)
 redis = from_url(REDIS_URL)
 mutes = RedisDict(redis=redis, redis_key='mutes')
@@ -262,7 +265,6 @@ async def on_socket_raw_receive(payload):
 
         if not msg.pinned and reac_nb >= REACTIONS_THRESHOLD:
             await client.pin_message(msg)
-            print("lo")
             await client.send_message(main_channel, "A publication just reached %s reactions in %s! Congratulations, %s." % (REACTIONS_THRESHOLD, chan.mention, msg.author.mention))
 
 
@@ -340,6 +342,7 @@ async def on_ready():
     # Getting channels
     log_channel      = client.get_channel(LOG_CHANNEL_ID)
     main_channel     = client.get_channel(MAIN_CHANNEL_ID)
+    streams_channel  = client.get_channel(STREAMS_CHANNEL_ID)
     showcase_channel = client.get_channel(SHOWCASE_CHANNEL_ID)
     # reddit_channel   = client.get_channel(REDDIT_CHANNEL_ID)
 
@@ -365,7 +368,7 @@ async def on_ready():
         print("Data reinit done.")
 
 
-async def check_mutes(delay=60):
+async def check_mutes(delay=20):
     await client.wait_until_ready()
 
     while not client.is_closed:
@@ -393,6 +396,46 @@ async def check_mutes(delay=60):
                     type = 'rich',
                     colour = Colour.orange()
                 ))
+
+
+async def check_streams(delay=20):
+    await client.wait_until_ready()
+    main_channel    = client.get_channel(MAIN_CHANNEL_ID)
+    streams_channel = client.get_channel(STREAMS_CHANNEL_ID)
+
+    last_ids = []
+    while not client.is_closed:
+        streams = tw_client.streams.get_live_streams(game="Skywanderers")
+        for stream in streams:
+            if stream['id'] not in last_ids:
+                embed = Embed(
+                    type = 'rich',
+                    colour = Colour.purple(),
+                    title       = stream['channel']['status'],
+                    url         = stream['channel']['url'],
+                    timestamp   = stream['created_at'],
+                    description = stream['channel']['description'],
+                )
+                embed.set_image(url=stream['preview']['large'])
+                embed.set_author(
+                    name = "{0} [{1}]".format(
+                        stream['channel']['display_name'],
+                        stream['channel']['language']
+                    ),
+                    url  =     stream['channel']['url'],
+                    icon_url = stream['channel']['logo']
+                )
+                embed.set_footer(
+                    text     = "Looks like someone is streaming some Skywanderers!",
+                    icon_url = "https://image.noelshack.com/fichiers/2018/13/1/1522018829-twitch.png"
+                )
+                await client.send_message(streams_channel, embed=embed)
+                # await client.send_message(streams_channel, stream['channel']['url'])
+                await client.send_message(main_channel, "Looks like someone is streaming some Skywanderers :eyes: Check out %s!" % streams_channel.mention)
+
+        last_ids = [stream['id'] for stream in streams]
+        await asyncio.sleep(delay)
+
 
 # async def check_subreddit(delay=60):
 #     await client.wait_until_ready()
@@ -435,5 +478,6 @@ async def check_mutes(delay=60):
 
 # client.loop.create_task(check_subreddit(SUBREDDIT_REFRESH))
 client.loop.create_task(check_mutes())
+client.loop.create_task(check_streams())
 client.run(DISCORD_TOKEN)
 db.close()
