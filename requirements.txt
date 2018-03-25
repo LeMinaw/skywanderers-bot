@@ -10,5 +10,5 @@ redisworks==0.2.7
 certifi==2018.1.18
 idna==2.6
 python-twitch-client==0.5.1
-six-1.11.0
-urllib3-1.22
+six==1.11.0
+urllib3==1.22
