@@ -433,7 +433,7 @@ async def check_streams(delay=20):
                 # await client.send_message(streams_channel, stream['channel']['url'])
                 # await client.send_message(main_channel, "Looks like someone is streaming some Skywanderers :eyes: Check out %s!" % streams_channel.mention)
 
-                last_ids += stream['id']
+                last_ids.append(stream['id'])
 
         await asyncio.sleep(delay)
 
