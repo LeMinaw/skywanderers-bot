@@ -18,7 +18,7 @@ class CapcomCog:
 
     @commands.command(name='capcom')
     async def capcom(self, ctx):
-        quote = self.quotes[randint(1, len(quotes) - 1)]
+        quote = self.quotes[randint(1, len(self.quotes) - 1)]
         quote = [s for s in quote.split('\n') if s]
 
         embed = Embed(
