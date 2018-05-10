@@ -31,7 +31,7 @@ class MuteCog:
         if ctx.author.permissions_in(ctx.channel).kick_members:
             if user is not None:
                 self.mutes.load()
-                if user.id in mutes.data and dur is None:
+                if user.id in self.mutes.data and dur is None:
                     del self.mutes.data[user.id]
                     muted = False
                 else:
