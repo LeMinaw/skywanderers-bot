@@ -1,4 +1,3 @@
-import requests
 import pickle
 
 
@@ -37,17 +36,3 @@ def make_dict(coll):
     """Makes a dict from a collection of sub-collection.
     Each first items of the collection is a key."""
     return {x[0]: tuple(x[1:]) for x in coll}
-
-
-def get_new_posts(subreddit_url, posts_nb=5):
-    """Returns a dict of the last <posts_nb> new posts in the <subreddit_url> subreddit."""
-    url = "http://www.reddit.com/r/%s/new.json?sort=new&limit=%s"
-    url = url % (subreddit_url, posts_nb)
-    data = None
-    try:
-        data = requests.get(url).json()['data']['children']
-    except (KeyboardInterrupt, SystemExit):
-        raise
-    except:
-        print("Failed to sync with Reddit servers.")
-    return data

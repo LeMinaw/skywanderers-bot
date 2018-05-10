@@ -1,25 +1,51 @@
 from os import getenv
 
+# GLOBAL
+
+EXTENSIONS = ['cogs.log',
+              'cogs.fun',
+              'cogs.mute',
+              'cogs.kick',
+              'cogs.twitch',
+              'cogs.redeem',
+              'cogs.capcom',
+              'cogs.showcase']
+
 DISCORD_TOKEN = getenv('DISCORD_TOKEN')
+REDIS_URL     = getenv('REDIS_URL')
+MAIN_CHANNEL  = 241014195884130315
+RULES_CHANNEL = 275053802615209986
 
-LOG_CHANNEL_ID      = "361282322303156224"
-MAIN_CHANNEL_ID     = "241014195884130315"
-RULES_CHANNEL_ID    = "275053802615209986"
-STREAMS_CHANNEL_ID  = "317360477292331011"
-SHOWCASE_CHANNEL_ID = "281178410917822474"
-# REDDIT_CHANNEL_ID   = "362107240963899395"
+# LOGS
 
-DONT_LOG_CHANNELS_IDS = [
-    LOG_CHANNEL_ID,
-    "271095863194025993", # bot-chat
-    "397822559837618219", # warframe
-    "403763237201379338"  # warframe-alerts
+LOG_CHANNEL   = 361282322303156224
+DONT_LOG = [
+    271095863194025993, # bot-chat
+    397822559837618219, # warframe
+    403763237201379338  # warframe-alerts
 ]
 
+# TWITCH
+
+STREAMS_CHANNEL = 317360477292331011
 TWITCH_CLIENT_ID = "qriowv30qp0heuosqlc3hekd9p6h29"
 
-# SUBREDDIT_URL = "skywanderers"
-# SUBREDDIT_REFRESH = 20 # Seconds
+# SHOWCASE
+
+SHOWCASE_CHANNEL = 281178410917822474
+REACTIONS_THRESHOLD = 20
+
+# REDDIT
+
+REDDIT_CHANNEL = 362107240963899395
+SUBREDDIT_URL = "skywanderers"
+
+# MUTE
+
+RESET_MUTES_ON_LOAD = False
+
+# REDEEM
+
 DATABASE = {
     "dbname": "d9um5ikkkmm463",
     "user": "fukkkitgsohzeo",
@@ -27,18 +53,21 @@ DATABASE = {
     "host": "ec2-184-73-199-72.compute-1.amazonaws.com",
     "port": 5432
 }
-REDIS_URL = getenv('REDIS_URL')
 ROLES = {
-    11:"Supporter",
-    12:"Pioneer",
-    13:"Explorer",
-    14:"Entrepreneur",
-    15:"Pirate",
-    16:"Corporate Mogul",
-    17:"Adventurer",
-    18:"Pirate Lord",
-    19:"Legendary Pirate Lord",
-    20:"Legendary Pirate King",
+    11: "Supporter",
+    12: "Pioneer",
+    13: "Explorer",
+    14: "Entrepreneur",
+    15: "Pirate",
+    16: "Corporate Mogul",
+    17: "Adventurer",
+    18: "Pirate Lord",
+    19: "Legendary Pirate Lord",
+    20: "Legendary Pirate King",
 }
-REACTIONS_THRESHOLD = 20
-RESET_MUTES_ON_LOAD = False
+
+try:
+    from localsettings import *
+    print("localsettings module found, using it.")
+except ImportError:
+    print("Using production settings from env vars.")
