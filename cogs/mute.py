@@ -73,26 +73,29 @@ class MuteCog:
         self.mutes.load()
         if msg.author.id in self.mutes.data:
             await msg.delete()
-            await msg.author.send("You're currently muted. Your message was deleted :(.\n```{msg.content}```")
+            await msg.author.send(f"You're currently muted. Your message was deleted :(.\n```{msg.content}```")
         # await self.bot.process_commands(msg) # Prevents commands API freeze
 
 
     async def check_mutes(self, delay=20):
         await self.bot.wait_until_ready()
 
-        while not self.bot.is_closed:
+        while not self.bot.is_closed():
             await asyncio.sleep(delay)
+            print("Loading mutes...")
             self.mutes.load()
+            # Copy ids in a list because we'll change dict size during iteration
             user_ids = list(self.mutes.data.keys())
             for user_id in user_ids:
                 end_time = self.mutes.data[user_id]
+                print(f"uid:{user_id} end:{end_time}")
                 if time() > end_time > 0:
                     del self.mutes.data[user_id]
                     self.mutes.save()
 
                     user = self.bot.get_user(user_id)
                     log_chan = self.bot.get_channel(settings.LOG_CHANNEL)
-                    await log_channel.send(embed=Embed(
+                    await log_chan.send(embed=Embed(
                         title = "MUTING",
                         description = f"**{user.mention} has been unmuted (time elapsed)**",
                         type = 'rich',
