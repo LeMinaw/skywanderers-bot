@@ -18,7 +18,8 @@ class TwitchCog:
         streams_chan = self.bot.get_channel(settings.STREAMS_CHANNEL)
 
         last_ids = []
-        while not self.bot.is_closed:
+        while not self.bot.is_closed():
+            print("Checking streams...")
             streams = self.tw_client.streams.get_live_streams(game="Skywanderers")
             for stream in streams:
                 if stream['id'] not in last_ids:
