@@ -15,7 +15,7 @@ class ShowcaseCog:
             if not any(pre in msg.content.lower() for pre in ("[completed]", "[wip]", "[info]")) and len(msg.attachments) == 0:
                 await msg.delete()
                 if not msg.author.bot:
-                    await msg.author.send("You can only submit files or prefixed messages on #showcase. Your message was deleted :(.\n```{msg.content}```")
+                    await msg.author.send(f"You can only submit files or prefixed messages on #showcase. Your message was deleted :(.\n```{msg.content}```")
             elif "[completed]" in msg.content.lower():
                 await msg.add_reaction("\u2795")
 
