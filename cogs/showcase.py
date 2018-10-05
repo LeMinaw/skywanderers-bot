@@ -40,7 +40,8 @@ class ShowcaseCog:
 
             if not msg.pinned and reac_nb >= settings.REACTIONS_THRESHOLD:
                 await msg.pin()
-                main_chan = ctx.guild.get_channel(settings.MAIN_CHANNEL)
+                guild = self.bot.get_guild(event['d']['guild_id'])
+                main_chan = guild.get_channel(settings.MAIN_CHANNEL)
                 await main_chan.send("A publication just reached %s reactions in %s! Congratulations, %s." % (
                     settings.REACTIONS_THRESHOLD,
                     chan.mention,

@@ -1,4 +1,5 @@
-from discord     import Embed, Colour
+from discord  import Embed, Colour
+from datetime import datetime
 import requests
 import asyncio
 import json
@@ -26,7 +27,7 @@ class RedditCog:
         self.bot.loop.create_task(self.check_subreddit())
 
 
-    async def check_subreddit(delay=60):
+    async def check_subreddit(self, delay=60):
         await self.bot.wait_until_ready()
         reddit_chan = self.bot.get_channel(settings.REDDIT_CHANNEL)
 

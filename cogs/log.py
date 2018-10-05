@@ -41,7 +41,7 @@ class LogCog:
             colour = Colour.red()
         ))
 
-    async def on_member_unban(self, ember):
+    async def on_member_unban(self, member):
         await self.chan.send(embed=Embed(
             title = "UNBANNING",
             type = 'rich',

@@ -1,5 +1,6 @@
 from discord     import Embed, Colour
 from discord.ext import commands
+from random import randint, choice
 import re
 
 import settings
@@ -19,7 +20,7 @@ class FunCog:
                     sep = "."
                 else:
                     sep = ", "
-                response += choice(sounds) + sep
+                response += choice(self.sounds) + sep
             await msg.channel.send(response)
 
         if re.match(r"(?:\W|^)wew(?:\W|$)", msg.content, flags=re.I):

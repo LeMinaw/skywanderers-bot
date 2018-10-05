@@ -1,3 +1,4 @@
+from discord import utils
 from discord.ext import commands
 from hashlib     import sha256
 import psycopg2
@@ -23,7 +24,7 @@ class RedeemCog:
                 db_key = db_keys[key]
                 if db_key[0]:
                     usr_id = ctx.author.id
-                    usr_name = msg.author.name
+                    usr_name = ctx.author.name
                     cur.execute("SELECT * FROM register_discordmember WHERE user_id = %s", (usr_id,))
                     db_usr = cur.fetchone()
                     if db_usr is None:
