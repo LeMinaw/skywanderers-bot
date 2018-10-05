@@ -7,20 +7,26 @@ import settings
 
 class FunCog:
     sounds = ("beep", "bip", "bzz", "bop", "bup", "bzzz")
+    answers = ("Yes", "Sure", "No way", "Never", "Yup", "Nope")
 
     def __init__(self, bot):
         self.bot = bot
 
     async def on_message(self, msg):
         if self.bot.user.mentioned_in(msg) and not msg.mention_everyone:
-            sounds_nb = randint(1, 4)
-            response = ''
-            for i in range(sounds_nb):
-                if i + 1 == sounds_nb:
-                    sep = "."
-                else:
-                    sep = ", "
-                response += choice(self.sounds) + sep
+            if "should" in msg.lower():
+                response = choice(self.answers) + '.'
+
+            else:
+                sounds_nb = randint(1, 4)
+                response = ''
+                for i in range(sounds_nb):
+                    if i + 1 == sounds_nb:
+                        sep = "."
+                    else:
+                        sep = ", "
+                    response += choice(self.sounds) + sep
+
             await msg.channel.send(response)
 
         if re.match(r"(?:\W|^)wew(?:\W|$)", msg.content, flags=re.I):
