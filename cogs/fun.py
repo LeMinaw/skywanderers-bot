@@ -14,7 +14,7 @@ class FunCog:
 
     async def on_message(self, msg):
         if self.bot.user.mentioned_in(msg) and not msg.mention_everyone:
-            if "should" in msg.lower():
+            if "should" in msg.content.lower():
                 response = choice(self.answers) + '.'
 
             else:
