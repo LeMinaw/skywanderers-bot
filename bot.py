@@ -10,35 +10,35 @@ bot = commands.Bot(command_prefix='!', description="Skywanderers' main guidance 
 bot.redis = redis.from_url(settings.REDIS_URL)
 
 
-@commands.command(name='info', aliases=['mgc'])
+@bot.command(name='info', aliases=['mgc'])
 async def info(ctx):
-        embed = Embed(
-            type = 'rich',
-            colour = Colour.orange(),
-            title = "SKYWANDERERS' MAIN GUIDANCE COMPUTER",
-        )
-        embed.set_image(url="https://cdn.discordapp.com/attachments/279940382656167936/361678736422076418/comp.png")
-        embed.add_field(name="Commands handbook", value=
-                "!info or !mgc"
-                "\n!capcom"
-                "\n!redeem activationKey"
-                "\n!kick @member"
-                "\n!mute @member"
-                "\n!mute @member minutes")
-        embed.add_field(name="Subsystems status", value=
-                "[OFF] Reddit tracking"
-                "\n[ON] Twitch tracking"
-                "\n[ON] Chat logging"
-                "\n[ON] Welcome and goodbye"
-                "\n[ON] Automated redeem"
-                "\n[ON] Showcase management"
-                "\n[ON] Moderation tools"
-                "\n[ON] Cool easter eggs")
-        embed.set_footer(
-            text="Main guidance computer crafted by LeMinaw corp. ltd",
-            icon_url="https://cdn.discordapp.com/avatars/201484914686689280/b6a28b98e51f482052e42009fed8c6c4.png"
-        )
-        await ctx.send(embed=embed)
+    embed = Embed(
+        type = 'rich',
+        colour = Colour.orange(),
+        title = "SKYWANDERERS' MAIN GUIDANCE COMPUTER",
+    )
+    embed.set_image(url="https://cdn.discordapp.com/attachments/279940382656167936/361678736422076418/comp.png")
+    embed.add_field(name="Commands handbook", value=
+            "!info or !mgc"
+            "\n!capcom"
+            "\n!redeem activationKey"
+            "\n!kick @member"
+            "\n!mute @member"
+            "\n!mute @member minutes")
+    embed.add_field(name="Subsystems status", value=
+            "[OFF] Reddit tracking"
+            "\n[ON] Twitch tracking"
+            "\n[ON] Chat logging"
+            "\n[ON] Welcome and goodbye"
+            "\n[ON] Automated redeem"
+            "\n[ON] Showcase management"
+            "\n[ON] Moderation tools"
+            "\n[ON] Cool easter eggs")
+    embed.set_footer(
+        text="Main guidance computer crafted by LeMinaw corp. ltd",
+        icon_url="https://cdn.discordapp.com/avatars/201484914686689280/b6a28b98e51f482052e42009fed8c6c4.png"
+    )
+    await ctx.send(embed=embed)
 
 
 @bot.event
