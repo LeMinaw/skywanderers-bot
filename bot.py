@@ -45,6 +45,7 @@ async def info(ctx):
 async def on_member_join(member):
     main_chan  = bot.get_channel(settings.MAIN_CHANNEL)
     rules_chan = bot.get_channel(settings.RULES_CHANNEL)
+    faq_chan   = bot.get_channel(settings.FAQ_CHANNEL)
     txt = choice([
         "Welcome on board, {user}! ",
         "Say hello to {user}, our new sky wanderer! ",
@@ -55,8 +56,9 @@ async def on_member_join(member):
         "Be careful. Mind the frog. ",
         "Warning! This server is lava. ",
         "May the force be with you. ",
-    ]) + "By the way, be sure to have a quick look at {rules}."
-    await main_chan.send(txt.format(user=member.mention, rules=rules_chan.mention))
+    ]) + "By the way, be sure to have a quick look at {rules} and {faq}."
+    await main_chan.send(txt.format(
+        user=member.mention, rules=rules_chan.mention, faq=faq_chan.mention))
 
 
 @bot.event
