@@ -12,7 +12,7 @@ class SkywareCog:
                 
                 if not (msg.author.bot or msg.webhook_id):
                     await msg.author.send(
-                        "The showcase is now closed! Please make your submission on"
+                        "The showcase is now closed! Please make your submission on "
                         f"www.skywa.re. Your message was deleted.\n```{msg.content}```"
                     )
 
