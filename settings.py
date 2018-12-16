@@ -9,7 +9,7 @@ EXTENSIONS = ['cogs.log',
               'cogs.twitch',
               'cogs.redeem',
               'cogs.capcom',
-              'cogs.showcase']
+              'cogs.skyware']
 
 DISCORD_TOKEN = getenv('DISCORD_TOKEN')
 REDIS_URL     = getenv('REDIS_URL')

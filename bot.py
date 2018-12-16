@@ -31,7 +31,8 @@ async def info(ctx):
             "\n[ON] Chat logging"
             "\n[ON] Welcome and goodbye"
             "\n[ON] Automated redeem"
-            "\n[ON] Showcase management"
+            "\n[OFF] Showcase management"
+            "\n[ON] Skywa.re integration"
             "\n[ON] Moderation tools"
             "\n[ON] Cool easter eggs")
     embed.set_footer(
