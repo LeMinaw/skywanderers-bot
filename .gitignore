@@ -100,3 +100,6 @@ ENV/
 
 # local settings
 localsettings.py
+
+# vsc
+.vscode
