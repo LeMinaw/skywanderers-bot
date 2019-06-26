@@ -39,6 +39,10 @@ SUBREDDIT_URL = "skywanderers"
 
 RESET_MUTES_ON_LOAD = False
 
+# SKYWARE
+
+SHOWCASE_CHANNEL = 281178410917822474
+
 try:
     from localsettings import *
     print("localsettings module found, using it.")
