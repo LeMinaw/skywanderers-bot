@@ -1,13 +1,13 @@
-from discord     import Embed, Member, Colour
-from discord.ext import commands
+from discord import Embed, Member, Colour
+from discord.ext.commands import Cog, command
 
 import settings
 
-class KickCog:
+class KickCog(Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    @commands.command(name='kick')
+    @command(name='kick')
     async def kick(self, ctx, user: Member):
         if ctx.author.permissions_in(ctx.channel).kick_members:
             if user is not None:

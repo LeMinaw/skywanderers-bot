@@ -1,15 +1,18 @@
 from discord import Embed, Colour
+from discord.ext.commands import Cog
 
 import settings
 
-class LogCog:
+class LogCog(Cog):
     def __init__(self, bot):
         self.bot = bot
         self.nologs_chans = settings.DONT_LOG + [settings.LOG_CHANNEL]
 
+    @Cog.listener()
     async def on_ready(self):
         self.chan = self.bot.get_channel(settings.LOG_CHANNEL)
 
+    @Cog.listener()
     async def on_message_delete(self, msg):
         if msg.channel.id not in self.nologs_chans:
             embed = Embed(
@@ -21,6 +24,7 @@ class LogCog:
             embed.add_field(name="Old content", value=msg.content)
             await self.chan.send(embed=embed)
 
+    @Cog.listener()
     async def on_message_edit(self, msg_before, msg_after):
         if msg_before.channel.id not in self.nologs_chans and msg_before.content != msg_after.content:
             embed = Embed(
@@ -33,6 +37,7 @@ class LogCog:
             embed.add_field(name="New content", value=msg_after.content)
             await self.chan.send(embed=embed)
 
+    @Cog.listener()
     async def on_member_ban(self, member):
         await self.chan.send(embed=Embed(
             title = "BANNING",
@@ -40,7 +45,8 @@ class LogCog:
             description = f"**{member} was banned from the server.**",
             colour = Colour.red()
         ))
-
+        
+    @Cog.listener()
     async def on_member_unban(self, member):
         await self.chan.send(embed=Embed(
             title = "UNBANNING",

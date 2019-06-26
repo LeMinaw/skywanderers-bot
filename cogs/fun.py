@@ -1,17 +1,16 @@
-from discord     import Embed, Colour
-from discord.ext import commands
-from random import randint, choice
 import re
+from random import randint, choice
+from discord import Embed, Colour
+from discord.ext.commands import command, Cog
 
-import settings
-
-class FunCog:
+class FunCog(Cog):
     sounds = ("beep", "bip", "bzz", "bop", "bup", "bzzz")
     answers = ("Yes", "Sure", "No way", "Never", "Yup", "Nope")
 
     def __init__(self, bot):
         self.bot = bot
 
+    @Cog.listener()
     async def on_message(self, msg):
         if self.bot.user.mentioned_in(msg) and not msg.mention_everyone:
             if "should" in msg.content.lower():

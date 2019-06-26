@@ -1,10 +1,11 @@
-from discord     import Embed, Colour
-from twitch      import TwitchClient
 import asyncio
+from discord import Embed, Colour
+from discord.ext.commands import Cog
+from twitch import TwitchClient
 
 import settings
 
-class TwitchCog:
+class TwitchCog(Cog):
     def __init__(self, bot):
         self.bot = bot
         self.tw_client = TwitchClient(settings.TWITCH_CLIENT_ID)

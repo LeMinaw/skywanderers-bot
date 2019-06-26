@@ -1,18 +1,18 @@
-from discord     import Embed, Member, Colour
-from discord.ext import commands
-from time        import time
 import asyncio
+from time import time
+from discord import Embed, Member, Colour
+from discord.ext.commands import Cog, command
 
-from utils import RedisDict
 import settings
+from utils import RedisDict
 
-class MuteCog:
+class MuteCog(Cog):
     def __init__(self, bot):
         self.bot = bot
         self.mutes = RedisDict(redis=self.bot.redis, redis_key='mutes')
         self.bot.loop.create_task(self.check_mutes())
 
-
+    @Cog.listener()
     async def on_ready(self):
         if settings.RESET_MUTES_ON_LOAD:
             self.mutes.save()
@@ -26,7 +26,7 @@ class MuteCog:
             print("Data reinit done.")
 
 
-    @commands.command(name='mute')
+    @command(name='mute')
     async def mute(self, ctx, user: Member, dur: int=None):
         if ctx.author.permissions_in(ctx.channel).kick_members:
             if user is not None:

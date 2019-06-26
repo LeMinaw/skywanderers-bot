@@ -1,11 +1,10 @@
-from discord     import Embed, Colour
-from discord.ext import commands
-from random      import randint
 import re
+from random import randint
+from discord import Embed, Colour
+from discord.ext.commands import command, Cog
 
-import settings
 
-class CapcomCog:
+class CapcomCog(Cog):
     def __init__(self, bot):
         self.bot = bot
 
@@ -16,7 +15,7 @@ class CapcomCog:
         self.quotes = pattern.findall(script)
 
 
-    @commands.command(name='capcom')
+    @command(name='capcom')
     async def capcom(self, ctx):
         quote = self.quotes[randint(1, len(self.quotes) - 1)]
         quote = [s for s in quote.split('\n') if s]

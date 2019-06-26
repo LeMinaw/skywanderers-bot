@@ -2,13 +2,15 @@ from os import getenv
 
 # GLOBAL
 
-EXTENSIONS = ['cogs.log',
-              'cogs.fun',
-              'cogs.mute',
-              'cogs.kick',
-              'cogs.twitch',
-              'cogs.capcom',
-              'cogs.skyware']
+EXTENSIONS = [
+    'cogs.log',
+    'cogs.fun',
+    'cogs.mute',
+    'cogs.kick',
+    'cogs.twitch',
+    'cogs.capcom',
+    'cogs.skyware'
+]
 
 DISCORD_TOKEN = getenv('DISCORD_TOKEN')
 REDIS_URL     = getenv('REDIS_URL')

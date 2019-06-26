@@ -1,10 +1,13 @@
+from discord.ext.commands import Cog
+
 import settings
 
 
-class SkywareCog:
+class SkywareCog(Cog):
     def __init__(self, bot):
         self.bot = bot
 
+    @Cog.listener()
     async def on_message(self, msg):
         if msg.channel.id == settings.SHOWCASE_CHANNEL:
             if not (msg.author.bot or msg.webhook_id or msg.content.startswith("[INFO]")):
