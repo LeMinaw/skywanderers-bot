@@ -7,7 +7,6 @@ EXTENSIONS = ['cogs.log',
               'cogs.mute',
               'cogs.kick',
               'cogs.twitch',
-              'cogs.redeem',
               'cogs.capcom',
               'cogs.skyware']
 
@@ -39,28 +38,6 @@ SUBREDDIT_URL = "skywanderers"
 # MUTE
 
 RESET_MUTES_ON_LOAD = False
-
-# REDEEM
-
-DATABASE = {
-    "dbname": "d9um5ikkkmm463",
-    "user": "fukkkitgsohzeo",
-    "password": getenv('DB_PWD'),
-    "host": "ec2-184-73-199-72.compute-1.amazonaws.com",
-    "port": 5432
-}
-ROLES = {
-    11: "Supporter",
-    12: "Pioneer",
-    13: "Explorer",
-    14: "Entrepreneur",
-    15: "Pirate",
-    16: "Corporate Mogul",
-    17: "Adventurer",
-    18: "Pirate Lord",
-    19: "Legendary Pirate Lord",
-    20: "Legendary Pirate King",
-}
 
 try:
     from localsettings import *
