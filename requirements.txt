@@ -1,4 +1,4 @@
-git+https://github.com/Rapptz/discord.py@rewrite
+discord.py==1.1.1
 redis==3.0.1
 python-twitch-client==0.6.0
 psycopg2==2.7.6.1
