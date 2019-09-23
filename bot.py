@@ -51,10 +51,10 @@ async def on_member_join(member):
         "Welcome on board, {user}! ",
         "Say hello to {user}, our new sky wanderer! ",
         "Be nice with our new recuit, {user}. ",
-        "Hey guys, looks like {user} is with us from now! ",
+        "Hey, looks like {user} is with us from now! ",
     ]) + choice([
         "Pray for Tsunamayo, our only god up there. ",
-        "Be careful. Mind the frog. ",
+        "Be careful. Mind the seal. ",
         "Warning! This server is lava. ",
         "May the force be with you. ",
     ]) + "By the way, be sure to have a quick look at {rules} and {faq}."
