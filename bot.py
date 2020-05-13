@@ -6,7 +6,7 @@ import sys
 
 import settings
 
-bot = commands.Bot(command_prefix='!', description="Skywanderers' main guidance computer")
+bot = commands.Bot(command_prefix='!', description="Starhip Evo's main guidance computer")
 bot.redis = redis.from_url(settings.REDIS_URL)
 
 
@@ -76,7 +76,7 @@ async def on_member_remove(member):
 @bot.event
 async def on_ready():
     print(f"Logged in as {bot.user.name} ({bot.user.id}).")
-    await bot.change_presence(activity=Game(name="Skywanderers"))
+    await bot.change_presence(activity=Game(name="Starhip Evo"))
 
 
 if __name__ == '__main__':
