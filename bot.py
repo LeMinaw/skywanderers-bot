@@ -6,7 +6,7 @@ import sys
 
 import settings
 
-bot = commands.Bot(command_prefix='!', description="Skywanderers' main guidance computer")
+bot = commands.Bot(command_prefix='!', description="Starhip Evo's main guidance computer")
 bot.redis = redis.from_url(settings.REDIS_URL)
 
 
@@ -15,7 +15,7 @@ async def info(ctx):
     embed = Embed(
         type = 'rich',
         colour = Colour.orange(),
-        title = "SKYWANDERERS' MAIN GUIDANCE COMPUTER",
+        title = "STARSHIP EVO'S MAIN GUIDANCE COMPUTER",
     )
     embed.set_image(url="https://cdn.discordapp.com/attachments/279940382656167936/361678736422076418/comp.png")
     embed.add_field(name="Commands handbook", value=
@@ -76,7 +76,7 @@ async def on_member_remove(member):
 @bot.event
 async def on_ready():
     print(f"Logged in as {bot.user.name} ({bot.user.id}).")
-    await bot.change_presence(activity=Game(name="Skywanderers"))
+    await bot.change_presence(activity=Game(name="Starhip Evo"))
 
 
 if __name__ == '__main__':

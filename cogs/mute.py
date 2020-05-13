@@ -56,7 +56,7 @@ class MuteCog(Cog):
                     colour = Colour.orange()
                 ))
                 await user.send(embed=Embed(
-                    title = "You have been {act} from Skywanderers' discord server {dur}.".format(
+                    title = "You have been {act} from Starhip Evo's discord server {dur}.".format(
                         act=action,
                         dur=duration
                     ),
@@ -102,7 +102,7 @@ class MuteCog(Cog):
                         colour = Colour.orange()
                     ))
                     await user.send(embed=Embed(
-                        title = "You have been unmuted from Skywanderers' discord server.",
+                        title = "You have been unmuted from Starhip Evo's discord server.",
                         description = "Welcome back!",
                         type = 'rich',
                         colour = Colour.orange()

@@ -1,5 +1,5 @@
 # skywanderers-bot
-A discord bot for Skywanderers.
+A discord bot for Starhip Evo.
 
 ## Features
 * Welcome

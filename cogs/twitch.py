@@ -21,7 +21,7 @@ class TwitchCog(Cog):
         last_ids = []
         while not self.bot.is_closed():
             print("Checking streams...")
-            streams = self.tw_client.streams.get_live_streams(game="Skywanderers")
+            streams = self.tw_client.streams.get_live_streams(game="Starhip Evo")
             for stream in streams:
                 if stream['id'] not in last_ids:
                     embed = Embed(
@@ -42,12 +42,12 @@ class TwitchCog(Cog):
                         icon_url = stream['channel']['logo']
                     )
                     embed.set_footer(
-                        text     = "Looks like someone is streaming some Skywanderers!",
+                        text     = "Looks like someone is streaming some Starhip Evo!",
                         icon_url = "https://image.noelshack.com/fichiers/2018/13/1/1522018829-twitch.png"
                     )
                     await streams_chan.send(embed=embed)
                     # await client.send_message(streams_channel, stream['channel']['url'])
-                    await main_chan.send(f"Looks like someone is streaming some Skywanderers :eyes: Check out {streams_chan.mention}!")
+                    await main_chan.send(f"Looks like someone is streaming some Starhip Evo :eyes: Check out {streams_chan.mention}!")
 
                     last_ids.append(stream['id'])
 
