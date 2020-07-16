@@ -45,6 +45,11 @@ RESET_MUTES_ON_LOAD = False
 
 SHOWCASE_CHANNEL = 281178410917822474
 
+# YOUTUBE
+
+YOUTUBE_API_KEY = getenv('YOUTUBE_API_KEY')
+YOUTUBE_CHANNEL_ID = "UCITNnomMkqQv1aNi_8dxVBQ"
+
 try:
     from localsettings import *
     print("localsettings module found, using it.")
