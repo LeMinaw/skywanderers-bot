@@ -28,10 +28,9 @@ async def info(ctx):
     embed.add_field(name="Subsystems status", value=
             "[OFF] Reddit tracking"
             "\n[ON] Twitch tracking"
+            "\n[ON] Youtube tracking"
             "\n[ON] Chat logging"
             "\n[ON] Welcome and goodbye"
-            "\n[ON] Automated redeem"
-            "\n[OFF] Showcase management"
             "\n[ON] Skywa.re integration"
             "\n[ON] Moderation tools"
             "\n[ON] Cool easter eggs")
@@ -76,7 +75,7 @@ async def on_member_remove(member):
 @bot.event
 async def on_ready():
     print(f"Logged in as {bot.user.name} ({bot.user.id}).")
-    await bot.change_presence(activity=Game(name="Starhip Evo"))
+    await bot.change_presence(activity=Game(name="Starship Evo"))
 
 
 if __name__ == '__main__':

@@ -8,6 +8,7 @@ EXTENSIONS = [
     'cogs.mute',
     'cogs.kick',
     'cogs.twitch',
+    'cogs.youtube',
     'cogs.capcom',
     'cogs.skyware'
 ]
