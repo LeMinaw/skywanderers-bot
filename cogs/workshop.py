@@ -64,7 +64,7 @@ class WorkshopCog(Cog):
                 type = 'rich',
                 colour = Colour.blue(),
                 title = blueprint['title'],
-                description = blueprint['file_description'],
+                description = blueprint['short_description'],
                 url = url,
                 timestamp = datetime.fromtimestamp(blueprint['time_updated'])
             )
