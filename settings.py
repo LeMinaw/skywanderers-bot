@@ -10,7 +10,8 @@ EXTENSIONS = [
     'cogs.twitch',
     'cogs.youtube',
     'cogs.capcom',
-    'cogs.skyware'
+    'cogs.skyware',
+    'cogs.workshop',
 ]
 
 DISCORD_TOKEN = getenv('DISCORD_TOKEN')
@@ -50,6 +51,12 @@ SHOWCASE_CHANNEL = 281178410917822474
 
 YOUTUBE_API_KEY = getenv('YOUTUBE_API_KEY')
 YOUTUBE_CHANNEL_ID = "UCITNnomMkqQv1aNi_8dxVBQ"
+
+# WORKSHOP
+
+STEAM_API_KEY = getenv('YOUTUBE_API_KEY')
+STARSHIP_EVO_APPID = 711980
+
 
 try:
     from localsettings import *

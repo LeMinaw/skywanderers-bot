@@ -21,7 +21,7 @@ async def info(ctx):
     embed.add_field(name="Commands handbook", value=
             "!info or !mgc"
             "\n!capcom"
-            "\n!redeem activationKey"
+            "\n!blueprint name"
             "\n!kick @member"
             "\n!mute @member"
             "\n!mute @member minutes")
