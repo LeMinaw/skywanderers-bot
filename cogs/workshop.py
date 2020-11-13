@@ -95,9 +95,40 @@ class WorkshopCog(Cog):
                 embed.set_footer(text=f"Warning: {results-1} other blueprint(s) matched your query.")
         await ctx.send(embed=embed)
 
-    @command(name='blueprints', aliases=['bps'])
-    async def blueprints(self, ctx, query):
-        pass
+    @command(name='blueprints', aliases=['bps', 'bpsearch', 'blueprintsearch'])
+    async def blueprints(self, ctx, query, num=5):
+        response = await self.steam_client.search_blueprints(query, num=min(num, 15))
+        results = response['total']
+
+        if results == 0:
+            embed = ErrorEmbed("No blueprint matched your query.")
+        
+        else:
+            blueprints = response['publishedfiledetails']
+            entries = []
+            for bp in blueprints:
+                title = bp ['title']
+                author = await self.steam_client.get_profile(bp['creator'])
+                author = author['personaname']
+                url = ("https://steamcommunity.com/sharedfiles/filedetails/?id=%s"
+                        % bp['publishedfileid'])
+                tags = [d['tag'] for d in bp['tags']]
+                tags.remove('Blueprint')
+                tags = ', '.join(tags)
+                entries.append(f"⦿ **[{title}]({url})** by **{author}** (*{tags}*)")
+            
+            others = results - len(entries)
+            if others > 0:
+                entries.append(f"*...and {others} more*")
+
+            embed = Embed(
+                type = 'rich',
+                colour = Colour.blue(),
+                title = f"Search results: {query}",
+                description = '\n'.join(entries)
+            )
+            embed.set_footer(text=f"{results} blueprint(s) matched your query.")
+        await ctx.send(embed=embed)
 
 
 def setup(bot):
