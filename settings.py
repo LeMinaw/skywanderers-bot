@@ -1,4 +1,4 @@
-from os import getenv
+hfrom os import getenv
 
 # GLOBAL
 
@@ -54,7 +54,7 @@ YOUTUBE_CHANNEL_ID = "UCITNnomMkqQv1aNi_8dxVBQ"
 
 # WORKSHOP
 
-STEAM_API_KEY = getenv('YOUTUBE_API_KEY')
+STEAM_API_KEY = getenv('STEAM_API_KEY')
 STARSHIP_EVO_APPID = 711980
 
 
