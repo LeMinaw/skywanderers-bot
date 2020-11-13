@@ -2,6 +2,7 @@ from discord import Embed, Colour
 from discord.ext.commands import Cog, command
 from datetime import datetime
 from steamapi import SteamAPIClient, EPublishedFileQueryType
+from embeds import ErrorEmbed
 import settings
 
 
@@ -46,13 +47,8 @@ class WorkshopCog(Cog):
         response = await self.steam_client.search_blueprints(name, num=1)
         results = response['total']
 
-        if results == 0:
-            embed = Embed(
-                type = 'rich',
-                colour = Colour.red(),
-                title = "Error :(",
-                description = "No blueprint matched your query."
-            )
+        if not results:
+            embed = ErrorEmbed(f"Blueprint {name} not found.")
         
         else:
             blueprint = response['publishedfiledetails'][0]
