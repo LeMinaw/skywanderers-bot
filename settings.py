@@ -1,4 +1,4 @@
-from os import getenv
+hfrom os import getenv
 
 # GLOBAL
 
