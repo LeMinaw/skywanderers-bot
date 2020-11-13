@@ -12,7 +12,7 @@ class StarshipEvoClient(SteamAPIClient):
         params = {
             'appid': self.app_id,
             'creator_appid': self.app_id,
-            'query_type': EPublishedFileQueryType.RANKED_BY_TEXT_SEARCH,
+            'query_type': EPublishedFileQueryType.RANKED_BY_TEXT_SEARCH.value,
             'cursor': '*',
             'numperpage': num,
             'requiredtags': 'Blueprint',
