@@ -23,7 +23,7 @@ class StarshipEvoClient(SteamAPIClient):
             'return_kv_tags': verbose,
             'return_previews': verbose,
             'return_children': False,
-            'return_short_description': False,
+            'return_short_description': True,
             'return_for_sale_data': False,
             'return_metadata': verbose,
             'return_playtime_stats': verbose,
