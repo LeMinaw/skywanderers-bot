@@ -43,7 +43,8 @@ class WorkshopCog(Cog):
         self.steam_client = StarshipEvoClient(settings.STEAM_API_KEY)
     
     @command(name='blueprint', aliases=['bp'])
-    async def blueprint(self, ctx, name):
+    async def blueprint(self, ctx, *, name: str):
+        """Display a nice card depicting a workshop blueprint."""
         response = await self.steam_client.search_blueprints(name, num=1)
         results = response['total']
 
@@ -96,7 +97,16 @@ class WorkshopCog(Cog):
         await ctx.send(embed=embed)
 
     @command(name='blueprints', aliases=['bps', 'bpsearch', 'blueprintsearch'])
-    async def blueprints(self, ctx, query, num=5):
+    async def blueprints(self, ctx, *, query: str):
+        """Search a blueprint in the workshop and display most relevant results.
+        It is also possible to set the number of results: `!bps eden scooter 15`.
+        """
+        last_arg = query.split(' ')[-1]
+        try:
+            num = int(last_arg)
+        except ValueError:
+            num = 5
+
         response = await self.steam_client.search_blueprints(query, num=min(num, 15))
         results = response['total']
 
