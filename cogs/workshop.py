@@ -161,7 +161,7 @@ class WorkshopCog(Cog):
     @Cog.listener()
     async def on_message(self, msg):
         match = re.search(
-            r'https://steamcommunity\.com/sharedfiles/filedetails/\?id=(\d+)',
+            r'https://steamcommunity\.com/(?:sharedfiles|workshop)/filedetails/\?id=(\d+)',
             msg.content
         )
         
