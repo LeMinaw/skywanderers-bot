@@ -171,6 +171,8 @@ class WorkshopCog(Cog):
             blueprint = response['publishedfiledetails'][0]
             embed = await self.make_blueprint_embed(blueprint)
             await msg.channel.send(embed=embed)
+            # Delete default embed
+            await msg.edit(suppress=True)
 
 def setup(bot):
     bot.add_cog(WorkshopCog(bot))
