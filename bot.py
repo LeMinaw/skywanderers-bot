@@ -22,9 +22,10 @@ async def info(ctx):
             "!info or !mgc"
             "\n!capcom"
             "\n!blueprint name"
-            "\n!kick @member"
-            "\n!mute @member"
-            "\n!mute @member minutes")
+            "\n!blueprints query")
+            # "\n!kick @member"
+            # "\n!mute @member"
+            # "\n!mute @member minutes"
     embed.add_field(name="Subsystems status", value=
             "[OFF] Reddit tracking"
             "\n[ON] Twitch tracking"
@@ -32,7 +33,8 @@ async def info(ctx):
             "\n[ON] Chat logging"
             "\n[ON] Welcome and goodbye"
             "\n[ON] Skywa.re integration"
-            "\n[ON] Moderation tools"
+            "\n[ON] Workshop integration"
+            "\n[OFF] Moderation tools"
             "\n[ON] Cool easter eggs")
     embed.set_footer(
         text="Main guidance computer crafted by LeMinaw corp. ltd",

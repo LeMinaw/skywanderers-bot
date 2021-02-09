@@ -5,8 +5,8 @@ from os import getenv
 EXTENSIONS = [
     'cogs.log',
     'cogs.fun',
-    'cogs.mute',
-    'cogs.kick',
+    # 'cogs.mute',
+    # 'cogs.kick',
     'cogs.twitch',
     'cogs.youtube',
     'cogs.capcom',
