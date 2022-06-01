@@ -1,5 +1,5 @@
 dateutils==0.6.8
 discord.py==1.3.4
-httpx==0.13.3
+httpx==0.23.0
 redis==3.0.1
 python-twitch-client==0.6.0
